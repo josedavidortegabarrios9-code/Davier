@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DAVIER Admin — Panel de gestión</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/admin.css"/>
+</head>
+<body>
+
+  <!-- LOGIN SCREEN -->
+  <div id="login-screen" class="login-screen">
+    <div class="login-card">
+      <div class="login-logo"><span>D</span>AVIER</div>
+      <p class="login-subtitle">Panel de Administración</p>
+      <form id="login-form" novalidate>
+        <div class="form-group">
+          <label for="adm-user">Usuario</label>
+          <input type="text" id="adm-user" placeholder="admin" autocomplete="username"/>
+        </div>
+        <div class="form-group">
+          <label for="adm-pass">Contraseña</label>
+          <input type="password" id="adm-pass" placeholder="••••••••" autocomplete="current-password"/>
+        </div>
+        <p class="login-error" id="login-error" hidden>Usuario o contraseña incorrectos</p>
+        <button type="submit" class="btn-login">Ingresar</button>
+      </form>
+      <p class="login-hint">Demo: <code>admin</code> / <code>davier2025</code></p>
+    </div>
+  </div>
+
+  <!-- ADMIN PANEL -->
+  <div id="admin-panel" class="admin-panel" hidden>
+
+    <!-- Sidebar -->
+    <aside class="adm-sidebar">
+      <div class="adm-brand"><span>D</span>AVIER <small>Admin</small></div>
+      <nav class="adm-nav">
+        <button class="adm-nav-item active" data-section="dashboard">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          Dashboard
+        </button>
+        <button class="adm-nav-item" data-section="products">
+          <svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><circle cx="7" cy="7" r="1.5" fill="currentColor" stroke="none"/></svg>
+          Productos
+        </button>
+        <button class="adm-nav-item" data-section="banners">
+          <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+          Banners / Ofertas
+        </button>
+        <button class="adm-nav-item" data-section="orders">
+          <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+          Órdenes
+        </button>
+        <button class="adm-nav-item" data-section="settings">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          Configuración
+        </button>
+      </nav>
+      <div class="adm-sidebar-footer">
+        <a href="index.html" target="_blank" class="btn-view-site">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          Ver tienda
+        </a>
+        <button class="btn-logout" id="btn-logout">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+          Cerrar sesión
+        </button>
+      </div>
+    </aside>
+
+    <!-- Contenido principal -->
+    <main class="adm-main">
+      <div class="adm-topbar">
+        <h1 class="adm-page-title" id="adm-page-title">Dashboard</h1>
+        <div class="adm-user-pill">
+          <span class="adm-avatar">A</span>
+          <span>admin</span>
+        </div>
+      </div>
+
+      <!-- ====== DASHBOARD ====== -->
+      <section class="adm-section" id="sec-dashboard">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon green">💰</div>
+            <div>
+              <p class="stat-label">Ingresos del mes</p>
+              <p class="stat-val">$4.280.000</p>
+              <p class="stat-change up">+12% vs mes anterior</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon blue">📦</div>
+            <div>
+              <p class="stat-label">Órdenes totales</p>
+              <p class="stat-val">147</p>
+              <p class="stat-change up">+8 esta semana</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon yellow">👟</div>
+            <div>
+              <p class="stat-label">Productos activos</p>
+              <p class="stat-val" id="dash-product-count">16</p>
+              <p class="stat-change">En catálogo</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon pink">⭐</div>
+            <div>
+              <p class="stat-label">Calificación media</p>
+              <p class="stat-val">4.8</p>
+              <p class="stat-change up">Excelente</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="adm-row">
+          <div class="adm-card" style="flex:2">
+            <div class="adm-card-header">
+              <h3>Órdenes recientes</h3>
+            </div>
+            <table class="adm-table">
+              <thead><tr><th>Orden</th><th>Cliente</th><th>Producto</th><th>Total</th><th>Estado</th></tr></thead>
+              <tbody id="recent-orders-tbody">
+                <!-- Generado por JS -->
+              </tbody>
+            </table>
+          </div>
+          <div class="adm-card" style="flex:1">
+            <div class="adm-card-header"><h3>Top productos</h3></div>
+            <div id="top-products-list" class="top-products"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====== PRODUCTOS ====== -->
+      <section class="adm-section" id="sec-products" hidden>
+        <div class="adm-card">
+          <div class="adm-card-header">
+            <h3>Gestión de Productos</h3>
+            <button class="btn-adm-primary" id="btn-new-product">+ Nuevo producto</button>
+          </div>
+
+          <!-- Formulario de producto -->
+          <div class="product-form-wrap" id="product-form-wrap" hidden>
+            <div class="product-form" id="product-form">
+              <h4 id="product-form-title">Nuevo producto</h4>
+              <input type="hidden" id="pf-id"/>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>Nombre del producto</label>
+                  <input type="text" id="pf-name" placeholder="Ej. Runner Elite"/>
+                </div>
+                <div class="form-group">
+                  <label>Categoría</label>
+                  <select id="pf-category">
+                    <option>Zapatillas</option><option>Botas</option><option>Sandalias</option>
+                    <option>Tacones</option><option>Mocasines</option><option>Infantil</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Género</label>
+                  <select id="pf-gender">
+                    <option value="mujer">Mujer</option>
+                    <option value="hombre">Hombre</option>
+                    <option value="ninos">Niños</option>
+                    <option value="unisex">Unisex</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Ícono</label>
+                  <select id="pf-icon">
+                    <option value="sneaker">Zapatilla</option><option value="boot">Bota</option>
+                    <option value="sandal">Sandalia</option><option value="heel">Tacón</option>
+                    <option value="loafer">Mocasín</option><option value="kids">Infantil</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Precio base (COP)</label>
+                  <input type="number" id="pf-price" placeholder="Ej. 189000" min="0"/>
+                </div>
+                <div class="form-group">
+                  <label>Descuento (%)</label>
+                  <input type="number" id="pf-discount" placeholder="0" min="0" max="80"/>
+                </div>
+                <div class="form-group" style="grid-column:1/-1">
+                  <label>Tallas disponibles (separadas por coma)</label>
+                  <input type="text" id="pf-sizes" placeholder="Ej. 36, 37, 38, 39, 40"/>
+                </div>
+                <div class="form-group" style="grid-column:1/-1">
+                  <label class="toggle-label">
+                    <input type="checkbox" id="pf-isnew"/> Marcar como NUEVO
+                  </label>
+                </div>
+              </div>
+              <div class="form-actions">
+                <button class="btn-adm-secondary" id="btn-cancel-product">Cancelar</button>
+                <button class="btn-adm-primary" id="btn-save-product">Guardar producto</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tabla de productos -->
+          <table class="adm-table" id="products-table">
+            <thead>
+              <tr>
+                <th>ID</th><th>Nombre</th><th>Género</th><th>Categoría</th>
+                <th>Precio</th><th>Desc.</th><th>Tallas</th><th>Nuevo</th><th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="products-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ====== BANNERS / OFERTAS ====== -->
+      <section class="adm-section" id="sec-banners" hidden>
+        <div class="adm-card">
+          <div class="adm-card-header">
+            <h3>Gestión de Banners y Ofertas</h3>
+            <button class="btn-adm-primary" id="btn-new-banner">+ Nuevo banner</button>
+          </div>
+
+          <div class="banner-form-wrap" id="banner-form-wrap" hidden>
+            <div class="product-form">
+              <h4 id="banner-form-title">Nuevo banner</h4>
+              <input type="hidden" id="bf-id"/>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>Etiqueta (ej. "🔥 Oferta Flash")</label>
+                  <input type="text" id="bf-tag" placeholder="🔥 Oferta Flash"/>
+                </div>
+                <div class="form-group">
+                  <label>Título principal</label>
+                  <input type="text" id="bf-title" placeholder="Ej. Hasta 40% de descuento"/>
+                </div>
+                <div class="form-group" style="grid-column:1/-1">
+                  <label>Subtítulo</label>
+                  <input type="text" id="bf-subtitle" placeholder="Descripción breve del banner"/>
+                </div>
+                <div class="form-group">
+                  <label>Texto del botón</label>
+                  <input type="text" id="bf-btn" placeholder="Ver ofertas"/>
+                </div>
+                <div class="form-group">
+                  <label>Ícono del zapato</label>
+                  <select id="bf-icon">
+                    <option value="sneaker">Zapatilla</option><option value="boot">Bota</option>
+                    <option value="sandal">Sandalia</option><option value="heel">Tacón</option>
+                    <option value="loafer">Mocasín</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Badge (ej. -40%)</label>
+                  <input type="text" id="bf-badge" placeholder="-40%"/>
+                </div>
+                <div class="form-group">
+                  <label>Tema de color</label>
+                  <select id="bf-theme">
+                    <option value="lime">Lima (verde)</option>
+                    <option value="pink">Rosa/Rojo</option>
+                    <option value="cyan">Cyan (azul)</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="toggle-label">
+                    <input type="checkbox" id="bf-active" checked/> Banner activo
+                  </label>
+                </div>
+              </div>
+              <div class="form-actions">
+                <button class="btn-adm-secondary" id="btn-cancel-banner">Cancelar</button>
+                <button class="btn-adm-primary" id="btn-save-banner">Guardar banner</button>
+              </div>
+            </div>
+          </div>
+
+          <table class="adm-table">
+            <thead><tr><th>Etiqueta</th><th>Título</th><th>Badge</th><th>Tema</th><th>Estado</th><th>Acciones</th></tr></thead>
+            <tbody id="banners-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ====== ÓRDENES ====== -->
+      <section class="adm-section" id="sec-orders" hidden>
+        <div class="adm-card">
+          <div class="adm-card-header"><h3>Historial de Órdenes</h3></div>
+          <table class="adm-table">
+            <thead><tr><th>Orden</th><th>Fecha</th><th>Cliente</th><th>Ciudad</th><th>Total</th><th>Estado</th><th>Acción</th></tr></thead>
+            <tbody id="orders-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ====== CONFIGURACIÓN ====== -->
+      <section class="adm-section" id="sec-settings" hidden>
+        <div class="adm-card" style="max-width:560px">
+          <div class="adm-card-header"><h3>Configuración de la tienda</h3></div>
+          <div class="settings-form">
+            <div class="form-group">
+              <label>Nombre de la tienda</label>
+              <input type="text" id="cfg-name" value="DAVIER Boutique de Calzado"/>
+            </div>
+            <div class="form-group">
+              <label>Correo de contacto</label>
+              <input type="email" id="cfg-email" value="ventas@davier.co"/>
+            </div>
+            <div class="form-group">
+              <label>Ciudad principal</label>
+              <input type="text" id="cfg-city" value="Barranquilla, Colombia"/>
+            </div>
+            <div class="form-group">
+              <label>WhatsApp de ventas</label>
+              <input type="text" id="cfg-whatsapp" value="+57 311 000 0000"/>
+            </div>
+            <div class="form-group">
+              <label>Mensaje del ticker (separar con •)</label>
+              <input type="text" id="cfg-ticker" value="Envío gratis toda la semana • 30 días para cambios • Pago seguro"/>
+            </div>
+            <div class="form-group">
+              <label class="toggle-label">
+                <input type="checkbox" id="cfg-envio" checked/> Mostrar banner "Envío gratis"
+              </label>
+            </div>
+            <div class="form-actions">
+              <button class="btn-adm-primary" id="btn-save-settings">Guardar cambios</button>
+            </div>
+            <p class="settings-saved" id="settings-saved" hidden>✓ Cambios guardados</p>
+          </div>
+        </div>
+
+        <div class="adm-card" style="max-width:560px;margin-top:1.5rem">
+          <div class="adm-card-header"><h3>Cambiar contraseña</h3></div>
+          <div class="settings-form">
+            <div class="form-group">
+              <label>Contraseña actual</label>
+              <input type="password" id="cfg-old-pass" placeholder="••••••••"/>
+            </div>
+            <div class="form-group">
+              <label>Nueva contraseña</label>
+              <input type="password" id="cfg-new-pass" placeholder="••••••••"/>
+            </div>
+            <div class="form-actions">
+              <button class="btn-adm-primary" id="btn-change-pass">Cambiar contraseña</button>
+            </div>
+            <p class="settings-saved" id="pass-changed" hidden>✓ Contraseña actualizada</p>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div><!-- /admin-panel -->
+
+  <script src="js/products.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>

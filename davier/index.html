@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DAVIER — Boutique de Calzado</title>
+  <meta name="description" content="Davier Boutique: calzado moderno para mujer, hombre y niños. Filtra por género y talla, busca tu modelo favorito y aprovecha nuestras ofertas." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👟</text></svg>" />
+
+  <!-- Fuentes -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Estilos -->
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/hero.css" />
+  <link rel="stylesheet" href="css/catalog.css" />
+  <link rel="stylesheet" href="css/cart.css" />
+  <link rel="stylesheet" href="css/checkout.css" />
+</head>
+<body>
+
+  <!-- SVG Sprite: íconos de zapatos (reemplaza con <img> cuando tengas fotos reales) -->
+  <svg style="display:none" aria-hidden="true">
+    <symbol id="icon-sneaker" viewBox="0 0 120 70">
+      <path d="M8 50C8 38 18 30 30 28L55 14C65 8 78 8 88 14L102 24C110 28 114 36 112 46L110 52C108 56 104 58 100 58L16 58C11 58 8 55 8 50Z" fill="currentColor" opacity=".12" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+      <path d="M30 28L46 41M55 14L63 31M78 12L87 29" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <path d="M8 50L112 50" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="icon-boot" viewBox="0 0 120 70">
+      <path d="M30 6L30 38C46 32 64 32 80 38L100 45C110 48 114 53 112 58C110 62 104 64 98 64L18 64C12 64 8 60 8 54L8 38C8 30 16 24 22 22L30 6Z" fill="currentColor" opacity=".12" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+      <path d="M8 38L30 38" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="icon-sandal" viewBox="0 0 120 70">
+      <path d="M10 50C10 57 17 61 25 61L96 61C104 61 111 57 111 50C111 43 104 39 96 39L25 39C17 39 10 43 10 50Z" fill="currentColor" opacity=".12" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+      <path d="M30 39C30 27 37 17 47 13C57 9 65 16 65 26L65 39M71 39L71 23C71 17 78 13 84 17L94 26" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="icon-heel" viewBox="0 0 120 70">
+      <path d="M14 30C14 19 27 13 41 13L78 13C90 13 100 21 103 32L107 49L99 60L40 60C29 60 21 53 17 44L14 30Z" fill="currentColor" opacity=".12" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+      <path d="M99 60L101 66L83 66L86 57" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="icon-loafer" viewBox="0 0 120 70">
+      <path d="M10 48C10 35 23 27 37 25L70 17C85 13 101 18 109 29C115 37 113 47 105 53L97 57L16 57C11 57 9 53 10 48Z" fill="currentColor" opacity=".12" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+      <path d="M40 25L53 38L40 45" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="icon-kids" viewBox="0 0 120 70">
+      <path d="M16 46C16 35 27 29 38 29L61 25C73 23 85 27 91 36L99 44C103 49 100 55 94 57L24 57C18 57 16 52 16 46Z" fill="currentColor" opacity=".12" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+      <path d="M40 29L40 44M53 27L53 44" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="2 4"/>
+    </symbol>
+  </svg>
+
+  <!-- ===================== HEADER ===================== -->
+  <header class="site-header" id="site-header">
+    <div class="header-inner container">
+      <a href="index.html" class="logo" aria-label="DAVIER inicio">
+        <span class="logo-d">D</span>AVIER
+        <small>Boutique de Calzado</small>
+      </a>
+
+      <button class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-controls="main-nav" aria-label="Abrir menú">
+        <span></span><span></span><span></span>
+      </button>
+
+      <nav class="main-nav" id="main-nav" aria-label="Navegación principal">
+        <a href="#inicio">Inicio</a>
+        <a href="#catalogo" data-gender-link="mujer">Mujer</a>
+        <a href="#catalogo" data-gender-link="hombre">Hombre</a>
+        <a href="#catalogo" data-gender-link="ninos">Niños</a>
+        <a href="#catalogo" data-gender-link="todos">Catálogo</a>
+        <a href="#ofertas">Ofertas</a>
+      </nav>
+
+      <div class="header-actions">
+        <button class="icon-btn" id="search-toggle" aria-label="Buscar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        </button>
+        <button class="icon-btn" id="cart-btn" aria-label="Carrito">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.6 12.6a2 2 0 002 1.6h8.8a2 2 0 002-1.6L22 8H6"/><circle cx="9" cy="20" r="1.2" fill="currentColor"/><circle cx="18" cy="20" r="1.2" fill="currentColor"/></svg>
+          <span class="cart-badge" id="cart-badge">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main-content">
+
+    <!-- ===================== HERO / BANNERS ===================== -->
+    <section id="inicio" class="hero-section" aria-label="Ofertas destacadas">
+      <div class="hero-carousel" id="hero">
+        <div class="hero-track" id="hero-track">
+
+          <!-- Slide 1 -->
+          <div class="hero-slide slide-1">
+            <div class="hero-bg-shapes" aria-hidden="true">
+              <div class="shape s1"></div><div class="shape s2"></div><div class="shape s3"></div>
+            </div>
+            <div class="hero-content">
+              <span class="hero-tag">🔥 Oferta Flash</span>
+              <h1 class="hero-title">Hasta <em>40%</em><br>de descuento</h1>
+              <p class="hero-sub">En colección urbana seleccionada. Solo por tiempo limitado.</p>
+              <a href="#catalogo" class="btn-hero">Ver ofertas <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M4 10h12M11 5l5 5-5 5"/></svg></a>
+            </div>
+            <div class="hero-visual" aria-hidden="true">
+              <div class="shoe-frame">
+                <svg class="shoe-svg" color="var(--accent)"><use href="#icon-sneaker"/></svg>
+                <div class="price-bubble">-40%</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Slide 2 -->
+          <div class="hero-slide slide-2">
+            <div class="hero-bg-shapes" aria-hidden="true">
+              <div class="shape s1"></div><div class="shape s2"></div><div class="shape s3"></div>
+            </div>
+            <div class="hero-content">
+              <span class="hero-tag">✨ Nueva temporada</span>
+              <h1 class="hero-title">Primavera<br><em>2025</em> Llegó</h1>
+              <p class="hero-sub">Sandalias, mules y mocasines frescos para la nueva temporada.</p>
+              <a href="#catalogo" class="btn-hero">Explorar <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M4 10h12M11 5l5 5-5 5"/></svg></a>
+            </div>
+            <div class="hero-visual" aria-hidden="true">
+              <div class="shoe-frame">
+                <svg class="shoe-svg" color="var(--accent2)"><use href="#icon-sandal"/></svg>
+                <div class="price-bubble new-tag">NUEVO</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Slide 3 -->
+          <div class="hero-slide slide-3">
+            <div class="hero-bg-shapes" aria-hidden="true">
+              <div class="shape s1"></div><div class="shape s2"></div><div class="shape s3"></div>
+            </div>
+            <div class="hero-content">
+              <span class="hero-tag">🚚 Beneficio exclusivo</span>
+              <h1 class="hero-title">Envío gratis<br><em>sin mínimo</em></h1>
+              <p class="hero-sub">Esta semana: envío gratis a todo el país. Compra hoy y recibe en 48h.</p>
+              <a href="#catalogo" class="btn-hero">Comprar ahora <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M4 10h12M11 5l5 5-5 5"/></svg></a>
+            </div>
+            <div class="hero-visual" aria-hidden="true">
+              <div class="shoe-frame">
+                <svg class="shoe-svg" color="var(--accent3)"><use href="#icon-boot"/></svg>
+                <div class="price-bubble ship-tag">GRATIS</div>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /hero-track -->
+
+        <button class="hero-arrow prev" id="hero-prev" aria-label="Anterior">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <button class="hero-arrow next" id="hero-next" aria-label="Siguiente">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+        <div class="hero-dots" id="hero-dots" role="tablist">
+          <button class="hero-dot active" role="tab" aria-selected="true" aria-label="Slide 1"></button>
+          <button class="hero-dot" role="tab" aria-selected="false" aria-label="Slide 2"></button>
+          <button class="hero-dot" role="tab" aria-selected="false" aria-label="Slide 3"></button>
+        </div>
+      </div><!-- /hero-carousel -->
+    </section>
+
+    <!-- Ticker -->
+    <div class="ticker" aria-hidden="true">
+      <div class="ticker-track">
+        <span>Envío gratis toda la semana</span><span>•</span>
+        <span>30 días para cambios y devoluciones</span><span>•</span>
+        <span>Pago 100% seguro</span><span>•</span>
+        <span>Nueva colección disponible</span><span>•</span>
+        <span>Retiro en tienda sin costo</span><span>•</span>
+        <span>Envío gratis toda la semana</span><span>•</span>
+        <span>30 días para cambios y devoluciones</span><span>•</span>
+        <span>Pago 100% seguro</span><span>•</span>
+        <span>Nueva colección disponible</span><span>•</span>
+        <span>Retiro en tienda sin costo</span><span>•</span>
+      </div>
+    </div>
+
+    <!-- ===================== CATÁLOGO ===================== -->
+    <section id="catalogo" class="catalog-section section" aria-label="Catálogo de calzado">
+      <div class="container">
+        <div class="catalog-header">
+          <div>
+            <p class="eyebrow">Catálogo</p>
+            <h2>Encuentra tu estilo</h2>
+          </div>
+          <div class="search-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+            <label for="search-input" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Buscar calzado</label>
+            <input type="search" id="search-input" placeholder="Buscar por nombre, ej. Runner…" />
+          </div>
+        </div>
+
+        <!-- Género tabs -->
+        <div class="gender-tabs" id="gender-tabs" role="tablist" aria-label="Filtrar por género">
+          <button class="gender-tab active" role="tab" aria-selected="true" data-gender="todos">Todos</button>
+          <button class="gender-tab" role="tab" aria-selected="false" data-gender="mujer">👠 Mujer</button>
+          <button class="gender-tab" role="tab" aria-selected="false" data-gender="hombre">👞 Hombre</button>
+          <button class="gender-tab" role="tab" aria-selected="false" data-gender="ninos">👟 Niños</button>
+        </div>
+
+        <!-- Tallas -->
+        <div class="size-row">
+          <span class="size-label">Talla:</span>
+          <div class="size-grid" id="size-grid" aria-label="Filtrar por talla">
+            <!-- Tallas 28-45 generadas por JS -->
+          </div>
+          <button class="link-btn" id="clear-filters">Limpiar filtros</button>
+        </div>
+
+        <!-- Resultados -->
+        <div class="results-bar">
+          <p id="results-count"></p>
+          <span id="ofertas"></span>
+        </div>
+
+        <!-- Grid de productos -->
+        <div class="product-grid" id="product-grid"></div>
+
+        <!-- Empty state -->
+        <div class="empty-state" id="empty-state" hidden>
+          <div class="empty-icon">🔍</div>
+          <p>No encontramos resultados con esos filtros.</p>
+          <button class="btn-primary" id="empty-clear">Limpiar filtros</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===================== FOOTER ===================== -->
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div class="footer-brand">
+        <p class="logo-footer"><span>D</span>AVIER</p>
+        <p>Boutique de calzado pensada para cada paso de tu día. Calidad, estilo y comodidad desde la primera pisada.</p>
+        <div class="social-links">
+          <a href="#" aria-label="Instagram">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4.5"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+          </a>
+          <a href="#" aria-label="Facebook">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
+          </a>
+          <a href="#" aria-label="TikTok">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 12a4 4 0 104 4V4a5 5 0 005 5"/></svg>
+          </a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Tienda</h4>
+        <ul>
+          <li><a href="#catalogo" data-gender-link="mujer">Mujer</a></li>
+          <li><a href="#catalogo" data-gender-link="hombre">Hombre</a></li>
+          <li><a href="#catalogo" data-gender-link="ninos">Niños</a></li>
+          <li><a href="#catalogo">Todas las colecciones</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Ayuda</h4>
+        <ul>
+          <li><a href="#">Guía de tallas</a></li>
+          <li><a href="#">Envíos y entregas</a></li>
+          <li><a href="#">Cambios y devoluciones</a></li>
+          <li><a href="#">Contacto</a></li>
+        </ul>
+      </div>
+      <div class="footer-newsletter">
+        <h4>Suscríbete</h4>
+        <p>Recibe ofertas exclusivas y lanzamientos antes que nadie.</p>
+        <form class="newsletter-form" id="newsletter-form" novalidate>
+          <input type="email" id="nl-email" placeholder="tu@correo.com" required />
+          <button type="submit">Suscribirme</button>
+        </form>
+        <p class="nl-success" id="nl-success" hidden>¡Listo! Pronto recibirás novedades 🎉</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="container">© 2025 DAVIER Boutique de Calzado — Todos los derechos reservados</div>
+    </div>
+  </footer>
+
+  <!-- ===================== PANEL CARRITO (drawer) ===================== -->
+  <div class="cart-overlay" id="cart-overlay" aria-hidden="true"></div>
+  <aside class="cart-drawer" id="cart-drawer" aria-label="Carrito de compras" aria-hidden="true">
+    <div class="cart-header">
+      <h3>Tu carrito</h3>
+      <button class="cart-close" id="cart-close" aria-label="Cerrar carrito">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="cart-body" id="cart-body">
+      <!-- Ítems inyectados por JS -->
+    </div>
+    <div class="cart-footer" id="cart-footer" hidden>
+      <div class="cart-subtotal">
+        <span>Subtotal</span>
+        <strong id="cart-total-price"></strong>
+      </div>
+      <button class="btn-checkout" id="btn-checkout">Ir al pago →</button>
+    </div>
+  </aside>
+
+  <!-- ===================== MODAL CHECKOUT ===================== -->
+  <div class="checkout-overlay" id="checkout-overlay" aria-hidden="true"></div>
+  <div class="checkout-modal" id="checkout-modal" role="dialog" aria-modal="true" aria-label="Pasarela de pago" aria-hidden="true">
+    <!-- Contenido inyectado por checkout.js -->
+  </div>
+
+  <!-- Scripts (orden importa: products → cart → catalog → checkout → app) -->
+  <script src="js/products.js"></script>
+  <script src="js/cart.js"></script>
+  <script src="js/catalog.js"></script>
+  <script src="js/checkout.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

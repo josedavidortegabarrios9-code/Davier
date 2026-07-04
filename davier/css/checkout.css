@@ -1,0 +1,305 @@
+/* ================================================================
+   DAVIER — checkout.css
+   Modal de pasarela de pago
+   ================================================================ */
+
+.checkout-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.85);
+  backdrop-filter: blur(8px);
+  z-index: 400;
+  opacity: 0; pointer-events: none;
+  transition: opacity .3s;
+}
+.checkout-overlay.open { opacity: 1; pointer-events: all; }
+
+.checkout-modal {
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%) scale(.95);
+  width: 760px; max-width: calc(100vw - 2rem);
+  max-height: 90dvh;
+  overflow-y: auto;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  z-index: 410;
+  opacity: 0; pointer-events: none;
+  transition: opacity .3s, transform .3s;
+}
+.checkout-modal::-webkit-scrollbar { width: 4px; }
+.checkout-modal::-webkit-scrollbar-thumb { background: var(--bg-3); }
+.checkout-modal.open { opacity: 1; pointer-events: all; transform: translate(-50%, -50%) scale(1); }
+
+/* ---- Header del modal ---- */
+.co-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0;
+  background: var(--bg-2);
+  z-index: 1;
+}
+.co-header h2 {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+.co-header-right { display: flex; align-items: center; gap: 1rem; }
+.co-secure {
+  display: flex; align-items: center; gap: .35rem;
+  font-size: .75rem; font-weight: 600;
+  color: var(--accent3);
+}
+.co-secure svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+.btn-co-close {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--bg-3);
+  color: var(--text);
+  display: flex; align-items: center; justify-content: center;
+  transition: background .2s;
+}
+.btn-co-close svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; }
+.btn-co-close:hover { background: var(--accent2); color: #fff; border-color: var(--accent2); }
+
+/* ---- Steps ---- */
+.co-steps {
+  display: flex;
+  padding: 1.25rem 2rem;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+}
+.co-step {
+  flex: 1;
+  display: flex; align-items: center; gap: .6rem;
+  font-size: .8rem; font-weight: 600;
+  color: var(--text-dim);
+  position: relative;
+}
+.co-step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  right: 0; top: 50%; transform: translateY(-50%);
+  width: 30%; height: 1px;
+  background: var(--border);
+}
+.co-step-num {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  border: 2px solid var(--text-dim);
+  display: flex; align-items: center; justify-content: center;
+  font-size: .72rem; font-weight: 800;
+  flex-shrink: 0;
+  transition: all .3s;
+}
+.co-step.active { color: var(--text); }
+.co-step.active .co-step-num { background: var(--accent); border-color: var(--accent); color: #000; }
+.co-step.done .co-step-num { background: var(--accent3); border-color: var(--accent3); color: #000; }
+.co-step.done { color: var(--accent3); }
+
+/* ---- Layout: form + resumen ---- */
+.co-body {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 0;
+}
+@media (max-width: 640px) { .co-body { grid-template-columns: 1fr; } }
+
+.co-form-section { padding: 2rem; border-right: 1px solid var(--border); }
+@media (max-width: 640px) { .co-form-section { border-right: none; border-bottom: 1px solid var(--border); } }
+
+.co-form-title {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin-bottom: 1.25rem;
+}
+
+/* Grupos de inputs */
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-bottom: .75rem; }
+.form-row.single { grid-template-columns: 1fr; }
+.form-row.triple { grid-template-columns: 1fr 1fr 1fr; }
+
+.form-group { display: flex; flex-direction: column; gap: .35rem; }
+.form-group label {
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.form-group input,
+.form-group select {
+  background: var(--bg-3);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: .7rem .9rem;
+  color: var(--text);
+  font-size: .92rem;
+  font-family: var(--font-body);
+  transition: border-color .2s;
+  appearance: none;
+}
+.form-group input:focus,
+.form-group select:focus { outline: none; border-color: var(--accent); }
+.form-group input.error { border-color: var(--accent2); }
+.form-group .field-error { font-size: .72rem; color: var(--accent2); display: none; }
+.form-group .field-error.show { display: block; }
+.form-group input::placeholder { color: var(--text-dim); }
+
+/* Separador de sección */
+.co-section-sep {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 1.5rem 0;
+}
+
+/* Tarjeta de crédito visual */
+.card-visual-wrap { margin-bottom: 1.25rem; perspective: 700px; }
+.card-visual {
+  width: 100%; max-width: 340px;
+  height: 192px;
+  border-radius: var(--r-lg);
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  border: 1px solid rgba(255,255,255,.12);
+  padding: 1.5rem;
+  display: flex; flex-direction: column; justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0,0,0,.4), var(--glow-accent);
+  transition: transform .4s ease;
+}
+.card-visual:hover { transform: rotateY(4deg) rotateX(2deg); }
+.card-visual::before {
+  content: '';
+  position: absolute;
+  top: -50%; right: -10%;
+  width: 280px; height: 280px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(200,255,0,.12) 0%, transparent 70%);
+}
+.card-chip {
+  width: 38px; height: 28px;
+  background: linear-gradient(135deg, #d4a843, #f5d073);
+  border-radius: 5px;
+}
+.card-number {
+  font-family: 'Courier Prime', 'Courier New', monospace;
+  font-size: 1.05rem;
+  letter-spacing: .22em;
+  color: rgba(255,255,255,.85);
+}
+.card-bottom { display: flex; justify-content: space-between; align-items: flex-end; }
+.card-label { font-size: .62rem; letter-spacing: .12em; text-transform: uppercase; color: rgba(255,255,255,.45); }
+.card-val { font-size: .88rem; font-weight: 600; color: rgba(255,255,255,.9); }
+.card-brand { font-family: var(--font-display); font-size: 1.1rem; letter-spacing: .1em; color: rgba(255,255,255,.7); }
+
+/* Métodos de pago */
+.payment-methods {
+  display: flex; gap: .6rem; flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+.pay-method {
+  flex: 1; min-width: 100px;
+  padding: .75rem;
+  border: 2px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--bg-3);
+  color: var(--text-muted);
+  display: flex; flex-direction: column; align-items: center; gap: .35rem;
+  font-size: .75rem; font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  transition: all .2s;
+}
+.pay-method svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2; }
+.pay-method:hover { border-color: var(--accent); color: var(--text); }
+.pay-method.active { border-color: var(--accent); color: var(--accent); background: rgba(200,255,0,.06); }
+
+/* Resumen lateral */
+.co-summary { padding: 2rem 1.5rem; background: var(--bg); }
+.co-sum-title {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin-bottom: 1.25rem;
+}
+.co-sum-items { display: flex; flex-direction: column; gap: .75rem; margin-bottom: 1.25rem; }
+.co-sum-item {
+  display: flex; gap: .75rem; align-items: center;
+}
+.co-sum-thumb {
+  width: 52px; height: 44px;
+  background: var(--bg-2);
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+.co-sum-thumb svg { width: 80%; height: 80%; }
+.co-sum-info { flex: 1; font-size: .82rem; }
+.co-sum-info strong { display: block; font-weight: 700; }
+.co-sum-info span { color: var(--text-muted); }
+.co-sum-price { font-family: var(--font-display); font-size: 1rem; white-space: nowrap; }
+
+.co-sum-sep { border: none; border-top: 1px solid var(--border); margin: 1rem 0; }
+.co-sum-row { display: flex; justify-content: space-between; font-size: .85rem; color: var(--text-muted); margin-bottom: .5rem; }
+.co-sum-total { display: flex; justify-content: space-between; font-size: 1rem; font-weight: 700; color: var(--text); margin-top: .5rem; }
+.co-sum-total span:last-child { font-family: var(--font-display); font-size: 1.3rem; color: var(--accent); }
+
+/* Navegación de pasos */
+.co-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 2rem;
+  border-top: 1px solid var(--border);
+  gap: 1rem;
+}
+.btn-co-back {
+  font-weight: 600;
+  font-size: .9rem;
+  color: var(--text-muted);
+  display: flex; align-items: center; gap: .3rem;
+  transition: color .2s;
+}
+.btn-co-back svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; }
+.btn-co-back:hover { color: var(--text); }
+.btn-co-next {
+  background: var(--accent);
+  color: #000;
+  font-weight: 800;
+  font-size: .95rem;
+  padding: .85rem 2rem;
+  border-radius: var(--r-sm);
+  transition: background .2s, box-shadow .2s;
+  min-width: 160px;
+  text-align: center;
+}
+.btn-co-next:hover { background: var(--accent-dark); box-shadow: var(--glow-accent); }
+.btn-co-next:disabled { opacity: .5; cursor: not-allowed; }
+
+/* ---- Pantalla de éxito ---- */
+.co-success {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 3.5rem 2.5rem;
+  text-align: center; gap: 1rem;
+}
+.co-success-icon {
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  background: rgba(200,255,0,.12);
+  border: 2px solid var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2rem;
+}
+.co-success h2 { font-family: var(--font-display); font-size: 2rem; text-transform: uppercase; }
+.co-success p { color: var(--text-muted); max-width: 36ch; }
+.co-order-num { font-family: 'Courier New', monospace; font-size: .9rem; color: var(--accent3); background: var(--bg-3); padding: .5rem 1rem; border-radius: var(--r-sm); }

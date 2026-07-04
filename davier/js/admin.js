@@ -1,0 +1,453 @@
+/* ================================================================
+   DAVIER — js/admin.js
+   Lógica del panel de administración
+   ================================================================ */
+
+/* ---- Auth ---- */
+const Auth = (() => {
+  const KEY = "davier_admin_auth";
+  const CREDS = { user: "admin", pass: "davier2025" };
+
+  function check() {
+    const token = sessionStorage.getItem(KEY);
+    return !!token;
+  }
+
+  function login(user, pass) {
+    if (user === CREDS.user && pass === CREDS.pass) {
+      sessionStorage.setItem(KEY, "authenticated");
+      return true;
+    }
+    return false;
+  }
+
+  function logout() {
+    sessionStorage.removeItem(KEY);
+    location.reload();
+  }
+
+  return { check, login, logout };
+})();
+
+/* ---- Storage de datos admin (localStorage) ---- */
+const AdminData = (() => {
+  const PRODUCTS_KEY = "davier_admin_products";
+  const BANNERS_KEY = "davier_admin_banners";
+
+  function getProducts() {
+    try {
+      const raw = localStorage.getItem(PRODUCTS_KEY);
+      return raw ? JSON.parse(raw) : [...PRODUCTS];
+    } catch { return [...PRODUCTS]; }
+  }
+
+  function saveProducts(arr) {
+    localStorage.setItem(PRODUCTS_KEY, JSON.stringify(arr));
+  }
+
+  function getBanners() {
+    try {
+      const raw = localStorage.getItem(BANNERS_KEY);
+      return raw ? JSON.parse(raw) : getDefaultBanners();
+    } catch { return getDefaultBanners(); }
+  }
+
+  function saveBanners(arr) {
+    localStorage.setItem(BANNERS_KEY, JSON.stringify(arr));
+  }
+
+  function getDefaultBanners() {
+    return [
+      { id: 1, tag: "🔥 Oferta Flash", title: "Hasta 40% de descuento", subtitle: "En colección urbana seleccionada. Solo por tiempo limitado.", btn: "Ver ofertas", icon: "sneaker", badge: "-40%", theme: "lime", active: true },
+      { id: 2, tag: "✨ Nueva temporada", title: "Primavera 2025 Llegó", subtitle: "Sandalias, mules y mocasines frescos para la nueva temporada.", btn: "Explorar", icon: "sandal", badge: "NUEVO", theme: "pink", active: true },
+      { id: 3, tag: "🚚 Beneficio exclusivo", title: "Envío gratis sin mínimo", subtitle: "Esta semana: envío gratis a todo el país. Compra hoy y recibe en 48h.", btn: "Comprar ahora", icon: "boot", badge: "GRATIS", theme: "cyan", active: true }
+    ];
+  }
+
+  return { getProducts, saveProducts, getBanners, saveBanners };
+})();
+
+/* ---- Init ---- */
+document.addEventListener("DOMContentLoaded", () => {
+  // Verificar auth
+  if (!Auth.check()) {
+    showLoginScreen();
+    return;
+  }
+  showAdminPanel();
+});
+
+function showLoginScreen() {
+  document.getElementById("login-screen").classList.remove("hidden");
+  document.getElementById("admin-panel").hidden = true;
+
+  document.getElementById("login-form")?.addEventListener("submit", e => {
+    e.preventDefault();
+    const user = document.getElementById("adm-user").value.trim();
+    const pass = document.getElementById("adm-pass").value.trim();
+    const error = document.getElementById("login-error");
+
+    if (Auth.login(user, pass)) {
+      location.reload();
+    } else {
+      error.hidden = false;
+      setTimeout(() => { error.hidden = true; }, 3000);
+    }
+  });
+}
+
+function showAdminPanel() {
+  document.getElementById("login-screen").classList.add("hidden");
+  document.getElementById("admin-panel").hidden = false;
+
+  // Navigation
+  document.querySelectorAll(".adm-nav-item").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const section = btn.dataset.section;
+      showSection(section);
+    });
+  });
+
+  // Logout
+  document.getElementById("btn-logout")?.addEventListener("click", () => {
+    if (confirm("¿Cerrar sesión?")) Auth.logout();
+  });
+
+  // Mostrar dashboard por defecto
+  showSection("dashboard");
+}
+
+function showSection(section) {
+  // Actualizar nav activo
+  document.querySelectorAll(".adm-nav-item").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.section === section);
+  });
+
+  // Actualizar secciones visibles
+  document.querySelectorAll(".adm-section").forEach(sec => {
+    sec.hidden = !sec.id.includes(section);
+  });
+
+  // Actualizar título
+  const titles = {
+    dashboard: "Dashboard",
+    products: "Gestión de Productos",
+    banners: "Banners y Ofertas",
+    orders: "Órdenes",
+    settings: "Configuración"
+  };
+  document.getElementById("adm-page-title").textContent = titles[section] || section;
+
+  // Init sección
+  if (section === "dashboard") initDashboard();
+  if (section === "products") initProducts();
+  if (section === "banners") initBanners();
+  if (section === "orders") initOrders();
+  if (section === "settings") initSettings();
+}
+
+/* ================================================================
+   DASHBOARD
+   ================================================================ */
+function initDashboard() {
+  const products = AdminData.getProducts();
+  document.getElementById("dash-product-count").textContent = products.length;
+
+  // Tabla de órdenes recientes (demo)
+  const recentOrders = [
+    { id: "DVR-001847", cliente: "María García", producto: "Runner Aire Pro", total: "$151.200", status: "Entregado" },
+    { id: "DVR-001846", cliente: "Juan Pérez", producto: "Flor de Verano", total: "$99.000", status: "En tránsito" },
+    { id: "DVR-001845", cliente: "Ana López", producto: "Elegancia Charol", total: "$171.500", status: "Procesando" },
+    { id: "DVR-001844", cliente: "Carlos Ruiz", producto: "Aventura Trail", total: "$230.000", status: "Entregado" },
+  ];
+  const tbody = document.getElementById("recent-orders-tbody");
+  if (tbody) {
+    tbody.innerHTML = recentOrders.map(o => `
+      <tr>
+        <td><code>${o.id}</code></td>
+        <td>${o.cliente}</td>
+        <td>${o.producto}</td>
+        <td><strong>${o.total}</strong></td>
+        <td><span class="status-badge status-${o.status.toLowerCase().replace(" ","-")}">${o.status}</span></td>
+      </tr>
+    `).join("");
+  }
+
+  // Top productos
+  const topList = document.getElementById("top-products-list");
+  if (topList) {
+    const top = products.slice(0, 5);
+    topList.innerHTML = top.map(p => `
+      <div class="product-item">
+        <span><strong>${p.name}</strong></span>
+        <span>📊 145 ventas</span>
+      </div>
+    `).join("");
+  }
+}
+
+/* ================================================================
+   PRODUCTOS
+   ================================================================ */
+function initProducts() {
+  const products = AdminData.getProducts();
+  renderProductsTable(products);
+
+  document.getElementById("btn-new-product")?.addEventListener("click", showProductForm);
+  document.getElementById("btn-cancel-product")?.addEventListener("click", hideProductForm);
+  document.getElementById("btn-save-product")?.addEventListener("click", saveProduct);
+}
+
+function renderProductsTable(products) {
+  const tbody = document.getElementById("products-tbody");
+  if (!tbody) return;
+  tbody.innerHTML = products.map(p => `
+    <tr>
+      <td>${p.id}</td>
+      <td>${p.name}</td>
+      <td>${getGenderLabel(p.gender)}</td>
+      <td>${p.category}</td>
+      <td>${formatCOP(p.price)}</td>
+      <td>${p.discount}%</td>
+      <td>${p.sizes.length} tallas</td>
+      <td>${p.isNew ? "✓" : "—"}</td>
+      <td>
+        <button class="btn-adm-sm" onclick="editProduct(${p.id})">Editar</button>
+        <button class="btn-adm-sm" onclick="deleteProduct(${p.id})">Eliminar</button>
+      </td>
+    </tr>
+  `).join("");
+}
+
+function showProductForm() {
+  document.getElementById("product-form-wrap").hidden = false;
+  document.getElementById("product-form-title").textContent = "Nuevo producto";
+  document.getElementById("pf-id").value = "";
+  document.getElementById("product-form").reset();
+}
+
+function hideProductForm() {
+  document.getElementById("product-form-wrap").hidden = true;
+  document.getElementById("product-form").reset();
+}
+
+function saveProduct() {
+  const id = document.getElementById("pf-id").value;
+  const name = document.getElementById("pf-name").value.trim();
+  const category = document.getElementById("pf-category").value;
+  const gender = document.getElementById("pf-gender").value;
+  const icon = document.getElementById("pf-icon").value;
+  const price = Number(document.getElementById("pf-price").value);
+  const discount = Number(document.getElementById("pf-discount").value);
+  const sizesStr = document.getElementById("pf-sizes").value.trim();
+  const isNew = document.getElementById("pf-isnew").checked;
+
+  if (!name || !price || !sizesStr) { alert("Completa los campos requeridos"); return; }
+
+  const sizes = sizesStr.split(",").map(s => Number(s.trim())).filter(s => !isNaN(s));
+  if (sizes.length === 0) { alert("Ingresa al menos una talla válida"); return; }
+
+  let products = AdminData.getProducts();
+
+  if (id) {
+    // Editar
+    const idx = products.findIndex(p => p.id == id);
+    if (idx > -1) {
+      products[idx] = { ...products[idx], name, category, gender, icon, price, discount, sizes, isNew };
+    }
+  } else {
+    // Nuevo
+    const newId = Math.max(...products.map(p => p.id), 0) + 1;
+    products.push({ id: newId, name, category, gender, icon, price, discount, sizes, isNew });
+  }
+
+  AdminData.saveProducts(products);
+  renderProductsTable(products);
+  hideProductForm();
+  alert("✓ Producto guardado");
+}
+
+function editProduct(id) {
+  const products = AdminData.getProducts();
+  const p = products.find(pr => pr.id == id);
+  if (!p) return;
+
+  document.getElementById("pf-id").value = p.id;
+  document.getElementById("pf-name").value = p.name;
+  document.getElementById("pf-category").value = p.category;
+  document.getElementById("pf-gender").value = p.gender;
+  document.getElementById("pf-icon").value = p.icon;
+  document.getElementById("pf-price").value = p.price;
+  document.getElementById("pf-discount").value = p.discount;
+  document.getElementById("pf-sizes").value = p.sizes.join(", ");
+  document.getElementById("pf-isnew").checked = p.isNew;
+  document.getElementById("product-form-title").textContent = "Editar producto";
+  document.getElementById("product-form-wrap").hidden = false;
+
+  window.scrollTo(0, 0);
+}
+
+function deleteProduct(id) {
+  if (!confirm("¿Eliminar este producto?")) return;
+  let products = AdminData.getProducts();
+  products = products.filter(p => p.id != id);
+  AdminData.saveProducts(products);
+  renderProductsTable(products);
+  alert("✓ Producto eliminado");
+}
+
+/* ================================================================
+   BANNERS
+   ================================================================ */
+function initBanners() {
+  const banners = AdminData.getBanners();
+  renderBannersTable(banners);
+
+  document.getElementById("btn-new-banner")?.addEventListener("click", showBannerForm);
+  document.getElementById("btn-cancel-banner")?.addEventListener("click", hideBannerForm);
+  document.getElementById("btn-save-banner")?.addEventListener("click", saveBanner);
+}
+
+function renderBannersTable(banners) {
+  const tbody = document.getElementById("banners-tbody");
+  if (!tbody) return;
+  tbody.innerHTML = banners.map(b => `
+    <tr>
+      <td>${b.tag}</td>
+      <td>${b.title}</td>
+      <td>${b.badge}</td>
+      <td>${b.theme}</td>
+      <td><span class="status-badge ${b.active ? "status-delivered" : "status-pending"}">${b.active ? "Activo" : "Inactivo"}</span></td>
+      <td>
+        <button class="btn-adm-sm" onclick="editBanner(${b.id})">Editar</button>
+        <button class="btn-adm-sm" onclick="deleteBanner(${b.id})">Eliminar</button>
+      </td>
+    </tr>
+  `).join("");
+}
+
+function showBannerForm() {
+  document.getElementById("banner-form-wrap").hidden = false;
+  document.getElementById("banner-form-title").textContent = "Nuevo banner";
+  document.getElementById("bf-id").value = "";
+  document.getElementById("bf-tag").value = "";
+  document.getElementById("bf-title").value = "";
+  document.getElementById("bf-subtitle").value = "";
+  document.getElementById("bf-btn").value = "";
+  document.getElementById("bf-badge").value = "";
+  document.getElementById("bf-active").checked = true;
+}
+
+function hideBannerForm() {
+  document.getElementById("banner-form-wrap").hidden = true;
+}
+
+function saveBanner() {
+  const id = document.getElementById("bf-id").value;
+  const tag = document.getElementById("bf-tag").value.trim();
+  const title = document.getElementById("bf-title").value.trim();
+  const subtitle = document.getElementById("bf-subtitle").value.trim();
+  const btn = document.getElementById("bf-btn").value.trim();
+  const icon = document.getElementById("bf-icon").value;
+  const badge = document.getElementById("bf-badge").value.trim();
+  const theme = document.getElementById("bf-theme").value;
+  const active = document.getElementById("bf-active").checked;
+
+  if (!tag || !title) { alert("Completa los campos requeridos"); return; }
+
+  let banners = AdminData.getBanners();
+
+  if (id) {
+    const idx = banners.findIndex(b => b.id == id);
+    if (idx > -1) {
+      banners[idx] = { ...banners[idx], tag, title, subtitle, btn, icon, badge, theme, active };
+    }
+  } else {
+    const newId = Math.max(...banners.map(b => b.id), 0) + 1;
+    banners.push({ id: newId, tag, title, subtitle, btn, icon, badge, theme, active });
+  }
+
+  AdminData.saveBanners(banners);
+  renderBannersTable(banners);
+  hideBannerForm();
+  alert("✓ Banner guardado");
+}
+
+function editBanner(id) {
+  const banners = AdminData.getBanners();
+  const b = banners.find(bn => bn.id == id);
+  if (!b) return;
+
+  document.getElementById("bf-id").value = b.id;
+  document.getElementById("bf-tag").value = b.tag;
+  document.getElementById("bf-title").value = b.title;
+  document.getElementById("bf-subtitle").value = b.subtitle;
+  document.getElementById("bf-btn").value = b.btn;
+  document.getElementById("bf-icon").value = b.icon;
+  document.getElementById("bf-badge").value = b.badge;
+  document.getElementById("bf-theme").value = b.theme;
+  document.getElementById("bf-active").checked = b.active;
+  document.getElementById("banner-form-title").textContent = "Editar banner";
+  document.getElementById("banner-form-wrap").hidden = false;
+
+  window.scrollTo(0, 0);
+}
+
+function deleteBanner(id) {
+  if (!confirm("¿Eliminar este banner?")) return;
+  let banners = AdminData.getBanners();
+  banners = banners.filter(b => b.id != id);
+  AdminData.saveBanners(banners);
+  renderBannersTable(banners);
+  alert("✓ Banner eliminado");
+}
+
+/* ================================================================
+   ÓRDENES
+   ================================================================ */
+function initOrders() {
+  const orders = [
+    { id: "DVR-001847", fecha: "2025-02-15", cliente: "María García", ciudad: "Barranquilla", total: 151200, status: "Entregado" },
+    { id: "DVR-001846", fecha: "2025-02-14", cliente: "Juan Pérez", ciudad: "Bogotá", total: 99000, status: "En tránsito" },
+    { id: "DVR-001845", fecha: "2025-02-13", cliente: "Ana López", ciudad: "Medellín", total: 171500, status: "Procesando" },
+    { id: "DVR-001844", fecha: "2025-02-12", cliente: "Carlos Ruiz", ciudad: "Cali", total: 230000, status: "Entregado" },
+  ];
+  const tbody = document.getElementById("orders-tbody");
+  if (!tbody) return;
+  tbody.innerHTML = orders.map(o => `
+    <tr>
+      <td><code>${o.id}</code></td>
+      <td>${o.fecha}</td>
+      <td>${o.cliente}</td>
+      <td>${o.ciudad}</td>
+      <td>${formatCOP(o.total)}</td>
+      <td><span class="status-badge status-${o.status.toLowerCase().replace(" ","-")}">${o.status}</span></td>
+      <td><button class="btn-adm-sm">Ver detalles</button></td>
+    </tr>
+  `).join("");
+}
+
+/* ================================================================
+   CONFIGURACIÓN
+   ================================================================ */
+function initSettings() {
+  document.getElementById("btn-save-settings")?.addEventListener("click", () => {
+    document.getElementById("settings-saved").classList.add("show");
+    setTimeout(() => document.getElementById("settings-saved").classList.remove("show"), 2000);
+  });
+
+  document.getElementById("btn-change-pass")?.addEventListener("click", () => {
+    const oldPass = document.getElementById("cfg-old-pass").value.trim();
+    const newPass = document.getElementById("cfg-new-pass").value.trim();
+
+    if (oldPass !== "davier2025") { alert("Contraseña actual incorrecta"); return; }
+    if (newPass.length < 6) { alert("La nueva contraseña debe tener al menos 6 caracteres"); return; }
+
+    document.getElementById("pass-changed").classList.add("show");
+    setTimeout(() => {
+      document.getElementById("pass-changed").classList.remove("show");
+      document.getElementById("cfg-old-pass").value = "";
+      document.getElementById("cfg-new-pass").value = "";
+    }, 2000);
+  });
+}
