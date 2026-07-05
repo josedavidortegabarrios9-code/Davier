@@ -20,29 +20,43 @@ const Auth = (() => {
 
 /* ---- Storage de datos admin (localStorage) ---- */
 const AdminData = (() => {
-  const PRODUCTS_KEY = "davier_admin_products";
-  const BANNERS_KEY = "davier_admin_banners";
+
+/* ---- Storage de datos admin (Firestore) ---- */
+const AdminData = (() => {
+  let cache = { products: null, banners: null };
+
+  function init() {
+    const productsRef = db.collection("davier").doc("products");
+    const bannersRef = db.collection("davier").doc("banners");
+
+    return Promise.all([
+      productsRef.get().then(doc => {
+        cache.products = (doc.exists && doc.data().list) ? doc.data().list : [...PRODUCTS];
+      }).catch(() => { cache.products = [...PRODUCTS]; }),
+      bannersRef.get().then(doc => {
+        cache.banners = (doc.exists && doc.data().list) ? doc.data().list : getDefaultBanners();
+      }).catch(() => { cache.banners = getDefaultBanners(); })
+    ]);
+  }
 
   function getProducts() {
-    try {
-      const raw = localStorage.getItem(PRODUCTS_KEY);
-      return raw ? JSON.parse(raw) : [...PRODUCTS];
-    } catch { return [...PRODUCTS]; }
+    return cache.products || [...PRODUCTS];
   }
 
   function saveProducts(arr) {
-    localStorage.setItem(PRODUCTS_KEY, JSON.stringify(arr));
+    cache.products = arr;
+    db.collection("davier").doc("products").set({ list: arr })
+      .catch(err => alert("No se pudo guardar en la nube: " + err.message));
   }
 
   function getBanners() {
-    try {
-      const raw = localStorage.getItem(BANNERS_KEY);
-      return raw ? JSON.parse(raw) : getDefaultBanners();
-    } catch { return getDefaultBanners(); }
+    return cache.banners || getDefaultBanners();
   }
 
   function saveBanners(arr) {
-    localStorage.setItem(BANNERS_KEY, JSON.stringify(arr));
+    cache.banners = arr;
+    db.collection("davier").doc("banners").set({ list: arr })
+      .catch(err => alert("No se pudo guardar en la nube: " + err.message));
   }
 
   function getDefaultBanners() {
@@ -53,14 +67,14 @@ const AdminData = (() => {
     ];
   }
 
-  return { getProducts, saveProducts, getBanners, saveBanners };
+  return { init, getProducts, saveProducts, getBanners, saveBanners };
 })();
 
 /* ---- Init ---- */
 document.addEventListener("DOMContentLoaded", () => {
   auth.onAuthStateChanged(user => {
     if (user) {
-      showAdminPanel();
+      AdminData.init().then(showAdminPanel);
     } else {
       showLoginScreen();
     }
