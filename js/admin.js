@@ -116,11 +116,23 @@ function showAdminPanel() {
   document.getElementById("login-screen").classList.add("hidden");
   document.getElementById("admin-panel").hidden = false;
 
+  // Mobile sidebar toggle
+  const sidebarToggle = document.getElementById("adm-sidebar-toggle");
+  const sidebar = document.querySelector(".adm-sidebar");
+  
+  sidebarToggle?.addEventListener("click", () => {
+    sidebar?.classList.toggle("open");
+  });
+
   // Navigation
   document.querySelectorAll(".adm-nav-item").forEach(btn => {
     btn.addEventListener("click", () => {
       const section = btn.dataset.section;
       showSection(section);
+      // Cerrar sidebar en móvil cuando seleccionas una opción
+      if (window.innerWidth <= 768) {
+        sidebar?.classList.remove("open");
+      }
     });
   });
 
