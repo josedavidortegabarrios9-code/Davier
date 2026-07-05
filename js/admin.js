@@ -134,7 +134,9 @@ function showSection(section) {
 
   // Actualizar secciones visibles
   document.querySelectorAll(".adm-section").forEach(sec => {
-    sec.hidden = !sec.id.includes(section);
+    const isActive = sec.id.includes(section);
+    sec.hidden = !isActive;
+    sec.classList.toggle("active", isActive);
   });
 
   // Actualizar título
