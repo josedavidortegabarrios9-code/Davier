@@ -7,10 +7,17 @@
 
 const CloudSync = (() => {
 
+  function withTimeout(promise, ms) {
+    return Promise.race([
+      promise,
+      new Promise(resolve => setTimeout(resolve, ms))
+    ]);
+  }
+
   function syncProducts() {
-    return db.collection("davier").doc("products").get()
+    return withTimeout(db.collection("davier").doc("products").get(), 6000)
       .then(doc => {
-        if (doc.exists && Array.isArray(doc.data().list) && doc.data().list.length) {
+        if (doc && doc.exists && Array.isArray(doc.data().list) && doc.data().list.length) {
           const cloudList = doc.data().list;
           PRODUCTS.length = 0;
           cloudList.forEach(p => PRODUCTS.push(p));
@@ -20,9 +27,9 @@ const CloudSync = (() => {
   }
 
   function syncBanners() {
-    return db.collection("davier").doc("banners").get()
+    return withTimeout(db.collection("davier").doc("banners").get(), 6000)
       .then(doc => {
-        if (doc.exists && Array.isArray(doc.data().list) && doc.data().list.length) {
+        if (doc && doc.exists && Array.isArray(doc.data().list) && doc.data().list.length) {
           applyBanners(doc.data().list);
         }
       })

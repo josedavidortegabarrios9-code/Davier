@@ -5,12 +5,12 @@
 
 document.addEventListener("DOMContentLoaded", () => {
 
-  /* -------- Catálogo (espera datos de la nube, si los hay) -------- */
-  CloudSync.init().finally(() => {
-    Catalog.init();
-    Cart.render();
-    Cart.updateBadge();
-  });
+  /* -------- Catálogo (se muestra de inmediato; la nube actualiza en segundo plano) -------- */
+  Catalog.init();
+  Cart.render();
+  Cart.updateBadge();
+
+  CloudSync.init().then(() => Catalog.render());
 
   /* -------- Header: scroll effect -------- */
   const header = document.getElementById("site-header");

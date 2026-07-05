@@ -22,16 +22,23 @@ const Auth = (() => {
 const AdminData = (() => {
   let cache = { products: null, banners: null };
 
+  function withTimeout(promise, ms) {
+    return Promise.race([
+      promise,
+      new Promise(resolve => setTimeout(resolve, ms))
+    ]);
+  }
+
   function init() {
     const productsRef = db.collection("davier").doc("products");
     const bannersRef = db.collection("davier").doc("banners");
 
     return Promise.all([
-      productsRef.get().then(doc => {
-        cache.products = (doc.exists && doc.data().list) ? doc.data().list : [...PRODUCTS];
+      withTimeout(productsRef.get(), 6000).then(doc => {
+        cache.products = (doc && doc.exists && doc.data().list) ? doc.data().list : [...PRODUCTS];
       }).catch(() => { cache.products = [...PRODUCTS]; }),
-      bannersRef.get().then(doc => {
-        cache.banners = (doc.exists && doc.data().list) ? doc.data().list : getDefaultBanners();
+      withTimeout(bannersRef.get(), 6000).then(doc => {
+        cache.banners = (doc && doc.exists && doc.data().list) ? doc.data().list : getDefaultBanners();
       }).catch(() => { cache.banners = getDefaultBanners(); })
     ]);
   }
