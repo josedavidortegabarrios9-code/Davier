@@ -13,7 +13,14 @@ const firebaseConfig = {
   measurementId: "G-J8HM5Z3LFF"
 };
 
-firebase.initializeApp(firebaseConfig);
+let auth = null;
+let db = null;
 
-const auth = firebase.auth ? firebase.auth() : null;
-const db = firebase.firestore();
+try {
+  firebase.initializeApp(firebaseConfig);
+  auth = firebase.auth ? firebase.auth() : null;
+  db = firebase.firestore();
+  db.settings({ experimentalForceLongPolling: true, merge: true });
+} catch (e) {
+  console.warn("Firebase no se pudo inicializar, la tienda sigue funcionando sin la nube.", e);
+}

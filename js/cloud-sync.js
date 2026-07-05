@@ -15,6 +15,7 @@ const CloudSync = (() => {
   }
 
   function syncProducts() {
+    if (!db) return Promise.resolve();
     return withTimeout(db.collection("davier").doc("products").get(), 6000)
       .then(doc => {
         if (doc && doc.exists && Array.isArray(doc.data().list) && doc.data().list.length) {
@@ -27,6 +28,7 @@ const CloudSync = (() => {
   }
 
   function syncBanners() {
+    if (!db) return Promise.resolve();
     return withTimeout(db.collection("davier").doc("banners").get(), 6000)
       .then(doc => {
         if (doc && doc.exists && Array.isArray(doc.data().list) && doc.data().list.length) {

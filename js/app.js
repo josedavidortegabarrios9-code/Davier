@@ -10,7 +10,11 @@ document.addEventListener("DOMContentLoaded", () => {
   Cart.render();
   Cart.updateBadge();
 
-  CloudSync.init().then(() => Catalog.render());
+  try {
+    CloudSync.init().then(() => Catalog.render()).catch(() => {});
+  } catch (e) {
+    console.warn("CloudSync no disponible, se sigue con los datos normales.", e);
+  }
 
   /* -------- Header: scroll effect -------- */
   const header = document.getElementById("site-header");
