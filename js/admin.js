@@ -277,16 +277,31 @@ function renderProductsTable(products) {
   `).join("");
 }
 
+function clearProductForm() {
+  ["pf-name","pf-price","pf-discount","pf-sizes"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = "";
+  });
+  document.getElementById("pf-category").selectedIndex = 0;
+  document.getElementById("pf-gender").selectedIndex = 0;
+  document.getElementById("pf-icon").selectedIndex = 0;
+  document.getElementById("pf-isnew").checked = false;
+  const photoInput = document.getElementById("pf-photo");
+  if (photoInput) photoInput.value = "";
+  const preview = document.getElementById("pf-photo-preview");
+  if (preview) preview.style.display = "none";
+}
+
 function showProductForm() {
   document.getElementById("product-form-wrap").hidden = false;
   document.getElementById("product-form-title").textContent = "Nuevo producto";
   document.getElementById("pf-id").value = "";
-  document.getElementById("product-form").reset();
+  clearProductForm();
 }
 
 function hideProductForm() {
   document.getElementById("product-form-wrap").hidden = true;
-  document.getElementById("product-form").reset();
+  clearProductForm();
 }
 
 function saveProduct() {
