@@ -10,6 +10,8 @@ const Checkout = (() => {
   let currentStep = 1;
   const TOTAL_STEPS = 3;
   let payMethod = "card";
+  let customerData = {};
+  let currentOrder = null;
 
   /* ---- Abrir / cerrar ---- */
   function open() {
@@ -295,8 +297,7 @@ const Checkout = (() => {
 
   /* ---- Step 3: Confirmación ---- */
   function step3HTML() {
-    const order = "#DVR-" + Math.floor(100000 + Math.random() * 900000);
-    setTimeout(() => Cart.clear(), 1800);
+    const order = currentOrder?.orderNumber ? "#" + currentOrder.orderNumber : "#DVR-000000";
     return `
       <div class="co-success">
         <div class="co-success-icon">🎉</div>
@@ -304,7 +305,8 @@ const Checkout = (() => {
         <p>Gracias por comprar en DAVIER. Recibirás un correo con los detalles de tu pedido en breve.</p>
         <p class="co-order-num">Número de orden: ${order}</p>
         <p style="font-size:.85rem;color:var(--text-muted);">Entrega estimada: 2 a 5 días hábiles</p>
-        <button class="btn-primary" onclick="Checkout.close()" style="margin-top:.5rem;">Seguir comprando</button>
+        <button class="btn-primary" id="btn-download-invoice" style="margin-top:.5rem;">Descargar factura</button>
+        <button class="btn-co-back" onclick="Checkout.close()" style="margin-top:.5rem;">Seguir comprando</button>
       </div>
     `;
   }
@@ -362,6 +364,7 @@ const Checkout = (() => {
     document.getElementById("co-close-btn")?.addEventListener("click", close);
     document.getElementById("co-next")?.addEventListener("click", nextStep);
     document.getElementById("co-back")?.addEventListener("click", prevStep);
+    document.getElementById("btn-download-invoice")?.addEventListener("click", downloadInvoice);
 
     /* Métodos de pago */
     document.querySelectorAll(".pay-method").forEach(btn => {
@@ -409,12 +412,155 @@ const Checkout = (() => {
     });
   }
 
+  function captureCustomerData() {
+    customerData = {
+      nombre: document.getElementById("co-nombre")?.value.trim() || "",
+      apellido: document.getElementById("co-apellido")?.value.trim() || "",
+      email: document.getElementById("co-email")?.value.trim() || "",
+      telefono: document.getElementById("co-tel")?.value.trim() || "",
+      ciudad: document.getElementById("co-ciudad")?.value.trim() || "",
+      direccion: document.getElementById("co-dir")?.value.trim() || "",
+      departamento: document.getElementById("co-dept")?.value || "",
+      codigoPostal: document.getElementById("co-cp")?.value.trim() || ""
+    };
+  }
+
+  function withTimeout(promise, ms) {
+    return Promise.race([promise, new Promise(resolve => setTimeout(resolve, ms))]);
+  }
+
+  function placeOrder() {
+    const nextBtn = document.getElementById("co-next");
+    if (nextBtn) { nextBtn.disabled = true; nextBtn.textContent = "Procesando pedido..."; }
+
+    const items = Cart.getItems();
+    const subtotal = Cart.getTotal();
+    const cardNum = document.getElementById("co-cardnum")?.value.replace(/\D/g, "") || "";
+
+    currentOrder = {
+      orderNumber: "DVR-" + Math.floor(100000 + Math.random() * 900000),
+      date: new Date().toISOString(),
+      customer: customerData,
+      items,
+      subtotal,
+      shipping: 0,
+      total: subtotal,
+      paymentMethod: payMethod,
+      cardLast4: payMethod === "card" && cardNum.length >= 4 ? cardNum.slice(-4) : "",
+      status: "Procesando"
+    };
+
+    const finish = () => {
+      Cart.clear();
+      currentStep = 3;
+      renderModal();
+      document.getElementById("checkout-modal")?.scrollTo(0, 0);
+    };
+
+    if (typeof db !== "undefined" && db) {
+      withTimeout(db.collection("orders").add(currentOrder), 6000)
+        .catch(err => console.warn("No se pudo guardar el pedido en la nube", err))
+        .finally(finish);
+    } else {
+      finish();
+    }
+  }
+
+  /* ---- Factura imprimible ---- */
+  function downloadInvoice() {
+    if (!currentOrder) return;
+    const o = currentOrder;
+    const fecha = new Date(o.date).toLocaleDateString("es-CO", { year: "numeric", month: "long", day: "numeric" });
+
+    const rowsHTML = o.items.map(it => `
+      <tr>
+        <td>${it.name}</td>
+        <td style="text-align:center">${it.size}</td>
+        <td style="text-align:center">${it.qty}</td>
+        <td style="text-align:right">${formatCOP(it.unitPrice)}</td>
+        <td style="text-align:right">${formatCOP(it.unitPrice * it.qty)}</td>
+      </tr>
+    `).join("");
+
+    const html = `
+      <!DOCTYPE html>
+      <html lang="es">
+      <head>
+        <meta charset="UTF-8">
+        <title>Factura ${o.orderNumber}</title>
+        <style>
+          body { font-family: Arial, sans-serif; color: #111; padding: 40px; max-width: 700px; margin: 0 auto; }
+          h1 { font-size: 22px; margin-bottom: 0; }
+          .sub { color: #666; margin-top: 4px; }
+          .grid { display: flex; justify-content: space-between; margin: 24px 0; font-size: 14px; }
+          table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 14px; }
+          th, td { padding: 8px 6px; border-bottom: 1px solid #ddd; }
+          th { text-align: left; background: #f5f5f5; }
+          .totals { margin-top: 16px; width: 100%; }
+          .totals td { border: none; padding: 4px 6px; }
+          .totals tr:last-child td { font-weight: bold; font-size: 16px; border-top: 2px solid #111; }
+          .footer { margin-top: 40px; font-size: 12px; color: #888; text-align: center; }
+          @media print { body { padding: 10px; } }
+        </style>
+      </head>
+      <body>
+        <h1>DAVIER — Boutique de Calzado</h1>
+        <p class="sub">Factura de venta</p>
+        <div class="grid">
+          <div>
+            <strong>Facturado a:</strong><br>
+            ${o.customer.nombre} ${o.customer.apellido}<br>
+            ${o.customer.direccion}<br>
+            ${o.customer.ciudad}, ${o.customer.departamento}<br>
+            ${o.customer.email}<br>
+            ${o.customer.telefono}
+          </div>
+          <div style="text-align:right">
+            <strong>N° de orden:</strong> ${o.orderNumber}<br>
+            <strong>Fecha:</strong> ${fecha}<br>
+            <strong>Pago:</strong> ${o.paymentMethod === "card" ? "Tarjeta •••• " + o.cardLast4 : o.paymentMethod === "pse" ? "PSE" : "Efecty"}
+          </div>
+        </div>
+        <table>
+          <thead><tr><th>Producto</th><th>Talla</th><th>Cant.</th><th>Precio</th><th>Subtotal</th></tr></thead>
+          <tbody>${rowsHTML}</tbody>
+        </table>
+        <table class="totals">
+          <tr><td>Subtotal</td><td style="text-align:right">${formatCOP(o.subtotal)}</td></tr>
+          <tr><td>Envío</td><td style="text-align:right">Gratis</td></tr>
+          <tr><td>Total</td><td style="text-align:right">${formatCOP(o.total)}</td></tr>
+        </table>
+        <p class="footer">Gracias por comprar en DAVIER · 30 días para cambios y devoluciones</p>
+        <script>window.onload = () => window.print();</script>
+      </body>
+      </html>
+    `;
+
+    const win = window.open("", "_blank");
+    if (win) {
+      win.document.write(html);
+      win.document.close();
+    } else {
+      alert("Permite las ventanas emergentes en tu navegador para poder ver la factura.");
+    }
+  }
+
   function nextStep() {
     const valid = currentStep === 1 ? validateStep1() : validateStep2();
     if (!valid) return;
-    currentStep++;
-    renderModal();
-    document.getElementById("checkout-modal")?.scrollTo(0, 0);
+
+    if (currentStep === 1) {
+      captureCustomerData();
+      currentStep++;
+      renderModal();
+      document.getElementById("checkout-modal")?.scrollTo(0, 0);
+      return;
+    }
+
+    if (currentStep === 2) {
+      placeOrder();
+      return;
+    }
   }
 
   function prevStep() {

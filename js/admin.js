@@ -171,34 +171,55 @@ function initDashboard() {
   const products = AdminData.getProducts();
   document.getElementById("dash-product-count").textContent = products.length;
 
-  // Tabla de órdenes recientes (demo)
-  const recentOrders = [
-    { id: "DVR-001847", cliente: "María García", producto: "Runner Aire Pro", total: "$151.200", status: "Entregado" },
-    { id: "DVR-001846", cliente: "Juan Pérez", producto: "Flor de Verano", total: "$99.000", status: "En tránsito" },
-    { id: "DVR-001845", cliente: "Ana López", producto: "Elegancia Charol", total: "$171.500", status: "Procesando" },
-    { id: "DVR-001844", cliente: "Carlos Ruiz", producto: "Aventura Trail", total: "$230.000", status: "Entregado" },
-  ];
   const tbody = document.getElementById("recent-orders-tbody");
-  if (tbody) {
-    tbody.innerHTML = recentOrders.map(o => `
-      <tr>
-        <td><code>${o.id}</code></td>
-        <td>${o.cliente}</td>
-        <td>${o.producto}</td>
-        <td><strong>${o.total}</strong></td>
-        <td><span class="status-badge status-${o.status.toLowerCase().replace(" ","-")}">${o.status}</span></td>
-      </tr>
-    `).join("");
+  const revenueEl = document.getElementById("dash-revenue");
+  const ordersCountEl = document.getElementById("dash-orders-count");
+
+  if (typeof db === "undefined" || !db) {
+    if (tbody) tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">Sin conexión a la nube.</td></tr>`;
+    return;
   }
 
-  // Top productos
+  db.collection("orders").orderBy("date", "desc").limit(50).get().then(snap => {
+    const orders = snap.docs.map(d => d.data());
+    const now = new Date();
+    const thisMonth = orders.filter(o => {
+      const d = new Date(o.date);
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    });
+    const monthRevenue = thisMonth.reduce((s, o) => s + (o.total || 0), 0);
+
+    if (revenueEl) revenueEl.textContent = formatCOP(monthRevenue);
+    if (ordersCountEl) ordersCountEl.textContent = orders.length;
+
+    if (tbody) {
+      if (!orders.length) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">Todavía no hay pedidos.</td></tr>`;
+      } else {
+        tbody.innerHTML = orders.slice(0, 5).map(o => `
+          <tr>
+            <td><code>${o.orderNumber}</code></td>
+            <td>${o.customer?.nombre || ""} ${o.customer?.apellido || ""}</td>
+            <td>${o.items?.[0]?.name || "-"}${o.items?.length > 1 ? ` +${o.items.length - 1}` : ""}</td>
+            <td><strong>${formatCOP(o.total || 0)}</strong></td>
+            <td><span class="status-badge status-${(o.status || "procesando").toLowerCase().replace(" ","-")}">${o.status || "Procesando"}</span></td>
+          </tr>
+        `).join("");
+      }
+    }
+  }).catch(err => {
+    if (tbody) tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">Error al cargar pedidos.</td></tr>`;
+    console.warn(err);
+  });
+
+  // Top productos (por ahora, catálogo actual — las ventas reales se podrán calcular con más pedidos)
   const topList = document.getElementById("top-products-list");
   if (topList) {
     const top = products.slice(0, 5);
     topList.innerHTML = top.map(p => `
       <div class="product-item">
         <span><strong>${p.name}</strong></span>
-        <span>📊 145 ventas</span>
+        <span>${formatCOP(p.price)}</span>
       </div>
     `).join("");
   }
@@ -468,25 +489,76 @@ function deleteBanner(id) {
    ÓRDENES
    ================================================================ */
 function initOrders() {
-  const orders = [
-    { id: "DVR-001847", fecha: "2025-02-15", cliente: "María García", ciudad: "Barranquilla", total: 151200, status: "Entregado" },
-    { id: "DVR-001846", fecha: "2025-02-14", cliente: "Juan Pérez", ciudad: "Bogotá", total: 99000, status: "En tránsito" },
-    { id: "DVR-001845", fecha: "2025-02-13", cliente: "Ana López", ciudad: "Medellín", total: 171500, status: "Procesando" },
-    { id: "DVR-001844", fecha: "2025-02-12", cliente: "Carlos Ruiz", ciudad: "Cali", total: 230000, status: "Entregado" },
-  ];
   const tbody = document.getElementById("orders-tbody");
   if (!tbody) return;
-  tbody.innerHTML = orders.map(o => `
-    <tr>
-      <td><code>${o.id}</code></td>
-      <td>${o.fecha}</td>
-      <td>${o.cliente}</td>
-      <td>${o.ciudad}</td>
-      <td>${formatCOP(o.total)}</td>
-      <td><span class="status-badge status-${o.status.toLowerCase().replace(" ","-")}">${o.status}</span></td>
-      <td><button class="btn-adm-sm">Ver detalles</button></td>
-    </tr>
-  `).join("");
+  tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text-muted)">Cargando pedidos...</td></tr>`;
+
+  if (typeof db === "undefined" || !db) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text-muted)">No se pudo conectar con la nube.</td></tr>`;
+    return;
+  }
+
+  db.collection("orders").orderBy("date", "desc").get()
+    .then(snap => {
+      if (snap.empty) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text-muted)">Todavía no hay pedidos.</td></tr>`;
+        return;
+      }
+      const statusOptions = ["Procesando", "En tránsito", "Entregado", "Cancelado"];
+      tbody.innerHTML = snap.docs.map(doc => {
+        const o = doc.data();
+        const fecha = o.date ? new Date(o.date).toLocaleDateString("es-CO") : "-";
+        const cliente = o.customer ? `${o.customer.nombre} ${o.customer.apellido}` : "-";
+        const ciudad = o.customer?.ciudad || "-";
+        const statusClass = (o.status || "Procesando").toLowerCase().replace(" ", "-").replace("á","a").replace("í","i");
+        return `
+          <tr>
+            <td><code>${o.orderNumber || doc.id}</code></td>
+            <td>${fecha}</td>
+            <td>${cliente}</td>
+            <td>${ciudad}</td>
+            <td>${formatCOP(o.total || 0)}</td>
+            <td>
+              <select class="order-status-select" data-id="${doc.id}">
+                ${statusOptions.map(s => `<option value="${s}" ${o.status === s ? "selected" : ""}>${s}</option>`).join("")}
+              </select>
+            </td>
+            <td><button class="btn-adm-sm btn-view-order" data-id="${doc.id}">Ver detalles</button></td>
+          </tr>
+        `;
+      }).join("");
+
+      tbody.querySelectorAll(".order-status-select").forEach(sel => {
+        sel.addEventListener("change", () => {
+          db.collection("orders").doc(sel.dataset.id).update({ status: sel.value })
+            .catch(err => alert("No se pudo actualizar el estado: " + err.message));
+        });
+      });
+
+      tbody.querySelectorAll(".btn-view-order").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const doc = snap.docs.find(d => d.id === btn.dataset.id);
+          if (doc) showOrderDetail(doc.data());
+        });
+      });
+    })
+    .catch(err => {
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text-muted)">Error al cargar pedidos.</td></tr>`;
+      console.warn(err);
+    });
+}
+
+function showOrderDetail(o) {
+  const itemsList = o.items.map(it => `${it.qty}x ${it.name} (Talla ${it.size}) — ${formatCOP(it.unitPrice * it.qty)}`).join("\n");
+  alert(
+    `Pedido ${o.orderNumber}\n\n` +
+    `Cliente: ${o.customer.nombre} ${o.customer.apellido}\n` +
+    `Email: ${o.customer.email}\n` +
+    `Teléfono: ${o.customer.telefono}\n` +
+    `Dirección: ${o.customer.direccion}, ${o.customer.ciudad}, ${o.customer.departamento}\n\n` +
+    `Productos:\n${itemsList}\n\n` +
+    `Total: ${formatCOP(o.total)}`
+  );
 }
 
 /* ================================================================
