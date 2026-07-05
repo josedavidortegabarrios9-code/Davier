@@ -18,17 +18,16 @@
       <p class="login-subtitle">Panel de Administración</p>
       <form id="login-form" novalidate>
         <div class="form-group">
-          <label for="adm-user">Usuario</label>
-          <input type="text" id="adm-user" placeholder="admin" autocomplete="username"/>
+          <label for="adm-user">Correo electrónico</label>
+          <input type="email" id="adm-user" placeholder="admin@davier.com" autocomplete="username"/>
         </div>
         <div class="form-group">
           <label for="adm-pass">Contraseña</label>
           <input type="password" id="adm-pass" placeholder="••••••••" autocomplete="current-password"/>
         </div>
-        <p class="login-error" id="login-error" hidden>Usuario o contraseña incorrectos</p>
-        <button type="submit" class="btn-login">Ingresar</button>
+        <p class="login-error" id="login-error" hidden>Correo o contraseña incorrectos</p>
+        <button type="submit" class="btn-login" id="btn-login-submit">Ingresar</button>
       </form>
-      <p class="login-hint">Demo: <code>admin</code> / <code>davier2025</code></p>
     </div>
   </div>
 
@@ -356,6 +355,12 @@
 
     </main>
   </div><!-- /admin-panel -->
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
 
   <script src="js/products.js"></script>
   <script src="js/admin.js"></script>

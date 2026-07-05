@@ -3,30 +3,19 @@
    Lógica del panel de administración
    ================================================================ */
 
-/* ---- Auth ---- */
+/* ---- Auth (Firebase) ---- */
 const Auth = (() => {
-  const KEY = "davier_admin_auth";
-  const CREDS = { user: "admin", pass: "davier2025" };
-
-  function check() {
-    const token = sessionStorage.getItem(KEY);
-    return !!token;
-  }
-
-  function login(user, pass) {
-    if (user === CREDS.user && pass === CREDS.pass) {
-      sessionStorage.setItem(KEY, "authenticated");
-      return true;
-    }
-    return false;
+  function login(email, pass) {
+    return auth.signInWithEmailAndPassword(email, pass)
+      .then(() => true)
+      .catch(() => false);
   }
 
   function logout() {
-    sessionStorage.removeItem(KEY);
-    location.reload();
+    auth.signOut().then(() => location.reload());
   }
 
-  return { check, login, logout };
+  return { login, logout };
 })();
 
 /* ---- Storage de datos admin (localStorage) ---- */
@@ -69,12 +58,13 @@ const AdminData = (() => {
 
 /* ---- Init ---- */
 document.addEventListener("DOMContentLoaded", () => {
-  // Verificar auth
-  if (!Auth.check()) {
-    showLoginScreen();
-    return;
-  }
-  showAdminPanel();
+  auth.onAuthStateChanged(user => {
+    if (user) {
+      showAdminPanel();
+    } else {
+      showLoginScreen();
+    }
+  });
 });
 
 function showLoginScreen() {
@@ -86,13 +76,21 @@ function showLoginScreen() {
     const user = document.getElementById("adm-user").value.trim();
     const pass = document.getElementById("adm-pass").value.trim();
     const error = document.getElementById("login-error");
+    const btn = document.getElementById("btn-login-submit");
 
-    if (Auth.login(user, pass)) {
-      location.reload();
-    } else {
-      error.hidden = false;
-      setTimeout(() => { error.hidden = true; }, 3000);
-    }
+    btn.disabled = true;
+    btn.textContent = "Ingresando...";
+
+    Auth.login(user, pass).then(ok => {
+      if (ok) {
+        location.reload();
+      } else {
+        error.hidden = false;
+        btn.disabled = false;
+        btn.textContent = "Ingresar";
+        setTimeout(() => { error.hidden = true; }, 3000);
+      }
+    });
   });
 }
 
@@ -439,15 +437,22 @@ function initSettings() {
   document.getElementById("btn-change-pass")?.addEventListener("click", () => {
     const oldPass = document.getElementById("cfg-old-pass").value.trim();
     const newPass = document.getElementById("cfg-new-pass").value.trim();
+    const user = auth.currentUser;
 
-    if (oldPass !== "davier2025") { alert("Contraseña actual incorrecta"); return; }
     if (newPass.length < 6) { alert("La nueva contraseña debe tener al menos 6 caracteres"); return; }
+    if (!user) { alert("Sesión no válida, vuelve a iniciar sesión."); return; }
 
-    document.getElementById("pass-changed").classList.add("show");
-    setTimeout(() => {
-      document.getElementById("pass-changed").classList.remove("show");
-      document.getElementById("cfg-old-pass").value = "";
-      document.getElementById("cfg-new-pass").value = "";
-    }, 2000);
+    const credential = firebase.auth.EmailAuthProvider.credential(user.email, oldPass);
+    user.reauthenticateWithCredential(credential)
+      .then(() => user.updatePassword(newPass))
+      .then(() => {
+        document.getElementById("pass-changed").classList.add("show");
+        setTimeout(() => {
+          document.getElementById("pass-changed").classList.remove("show");
+          document.getElementById("cfg-old-pass").value = "";
+          document.getElementById("cfg-new-pass").value = "";
+        }, 2000);
+      })
+      .catch(() => alert("Contraseña actual incorrecta"));
   });
 }
