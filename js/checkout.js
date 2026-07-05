@@ -50,7 +50,9 @@ const Checkout = (() => {
           ${items.map(item => `
             <div class="co-sum-item">
               <div class="co-sum-thumb">
-                <svg aria-hidden="true"><use href="#icon-${item.icon}"/></svg>
+                ${item.photo
+                  ? `<img src="${item.photo}" alt="${item.name}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" onerror="this.style.display='none'"/>`
+                  : `<svg aria-hidden="true"><use href="#icon-${item.icon}"/></svg>`}
               </div>
               <div class="co-sum-info">
                 <strong>${item.name}</strong>

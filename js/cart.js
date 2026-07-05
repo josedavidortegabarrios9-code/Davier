@@ -28,6 +28,7 @@ const Cart = (() => {
         id: product.id,
         name: product.name,
         icon: product.icon,
+        photo: product.photo || null,
         gender: product.gender,
         category: product.category,
         size,
@@ -80,7 +81,9 @@ const Cart = (() => {
     body.innerHTML = items.map(item => `
       <div class="cart-item" data-id="${item.id}" data-size="${item.size}">
         <div class="cart-item-icon">
-          <svg aria-hidden="true"><use href="#icon-${item.icon}"/></svg>
+          ${item.photo
+            ? `<img src="${item.photo}" alt="${item.name}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" onerror="this.style.display='none'"/>`
+            : `<svg aria-hidden="true"><use href="#icon-${item.icon}"/></svg>`}
         </div>
         <div class="cart-item-info">
           <p class="cart-item-name">${item.name}</p>

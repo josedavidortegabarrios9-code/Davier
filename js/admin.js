@@ -261,6 +261,7 @@ function renderProductsTable(products) {
   tbody.innerHTML = products.map(p => `
     <tr>
       <td>${p.id}</td>
+      <td>${p.photo ? `<img src="${p.photo}" alt="${p.name}" style="width:36px;height:36px;object-fit:cover;border-radius:6px;" onerror="this.style.display='none'"/>` : "—"}</td>
       <td>${p.name}</td>
       <td>${getGenderLabel(p.gender)}</td>
       <td>${p.category}</td>
