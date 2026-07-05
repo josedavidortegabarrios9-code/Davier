@@ -18,9 +18,6 @@ const Auth = (() => {
   return { login, logout };
 })();
 
-/* ---- Storage de datos admin (localStorage) ---- */
-const AdminData = (() => {
-
 /* ---- Storage de datos admin (Firestore) ---- */
 const AdminData = (() => {
   let cache = { products: null, banners: null };
