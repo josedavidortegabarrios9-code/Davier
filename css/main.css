@@ -224,19 +224,6 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 .nav-toggle.open span:nth-child(2) { opacity: 0; }
 .nav-toggle.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
-@media (max-width: 860px) {
-  .nav-toggle { display: flex; order: 3; }
-  .main-nav {
-    order: 5; flex-basis: 100%;
-    flex-direction: column; gap: 0;
-    max-height: 0; overflow: hidden;
-    transition: max-height .3s ease;
-    border-top: 1px solid transparent;
-  }
-  .main-nav.open { max-height: 300px; border-top-color: var(--border); padding: .5rem 0; }
-  .main-nav a { padding: .7rem 0; border-bottom: 1px solid var(--border); color: var(--text); }
-  .header-inner { flex-wrap: wrap; }
-}
 
 /* ----------------------------------------------------------------
    TICKER
