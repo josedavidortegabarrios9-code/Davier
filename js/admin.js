@@ -116,23 +116,11 @@ function showAdminPanel() {
   document.getElementById("login-screen").classList.add("hidden");
   document.getElementById("admin-panel").hidden = false;
 
-  // Mobile sidebar toggle
-  const sidebarToggle = document.getElementById("adm-sidebar-toggle");
-  const sidebar = document.querySelector(".adm-sidebar");
-  
-  sidebarToggle?.addEventListener("click", () => {
-    sidebar?.classList.toggle("open");
-  });
-
   // Navigation
   document.querySelectorAll(".adm-nav-item").forEach(btn => {
     btn.addEventListener("click", () => {
       const section = btn.dataset.section;
       showSection(section);
-      // Cerrar sidebar en móvil cuando seleccionas una opción
-      if (window.innerWidth <= 768) {
-        sidebar?.classList.remove("open");
-      }
     });
   });
 
@@ -226,6 +214,24 @@ function initProducts() {
   document.getElementById("btn-new-product")?.addEventListener("click", showProductForm);
   document.getElementById("btn-cancel-product")?.addEventListener("click", hideProductForm);
   document.getElementById("btn-save-product")?.addEventListener("click", saveProduct);
+
+  // Preview de foto
+  document.getElementById("pf-photo")?.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    const preview = document.getElementById("pf-photo-preview");
+    const img = document.getElementById("pf-photo-img");
+
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        img.src = event.target.result;
+        preview.style.display = "block";
+      };
+      reader.readAsDataURL(file);
+    } else {
+      preview.style.display = "none";
+    }
+  });
 }
 
 function renderProductsTable(products) {
@@ -271,6 +277,7 @@ function saveProduct() {
   const discount = Number(document.getElementById("pf-discount").value);
   const sizesStr = document.getElementById("pf-sizes").value.trim();
   const isNew = document.getElementById("pf-isnew").checked;
+  const photoFile = document.getElementById("pf-photo").files[0];
 
   if (!name || !price || !sizesStr) { alert("Completa los campos requeridos"); return; }
 
@@ -279,22 +286,47 @@ function saveProduct() {
 
   let products = AdminData.getProducts();
 
-  if (id) {
-    // Editar
-    const idx = products.findIndex(p => p.id == id);
-    if (idx > -1) {
-      products[idx] = { ...products[idx], name, category, gender, icon, price, discount, sizes, isNew };
+  // Función para guardar el producto
+  const saveProductData = (photoUrl) => {
+    if (id) {
+      // Editar
+      const idx = products.findIndex(p => p.id == id);
+      if (idx > -1) {
+        const updated = { ...products[idx], name, category, gender, icon, price, discount, sizes, isNew };
+        if (photoUrl) updated.photo = photoUrl;
+        products[idx] = updated;
+      }
+    } else {
+      // Nuevo
+      const newId = Math.max(...products.map(p => p.id), 0) + 1;
+      const newProduct = { id: newId, name, category, gender, icon, price, discount, sizes, isNew };
+      if (photoUrl) newProduct.photo = photoUrl;
+      products.push(newProduct);
     }
-  } else {
-    // Nuevo
-    const newId = Math.max(...products.map(p => p.id), 0) + 1;
-    products.push({ id: newId, name, category, gender, icon, price, discount, sizes, isNew });
-  }
 
-  AdminData.saveProducts(products);
-  renderProductsTable(products);
-  hideProductForm();
-  alert("✓ Producto guardado");
+    AdminData.saveProducts(products);
+    renderProductsTable(products);
+    hideProductForm();
+    alert("✓ Producto guardado");
+  };
+
+  // Si hay foto, subirla a Firebase Storage
+  if (photoFile) {
+    const storage = firebase.storage();
+    const fileName = `productos/${Date.now()}_${photoFile.name}`;
+    const fileRef = storage.ref(fileName);
+
+    fileRef.put(photoFile)
+      .then(snapshot => snapshot.ref.getDownloadURL())
+      .then(url => saveProductData(url))
+      .catch(err => {
+        console.error("Error al subir foto:", err);
+        alert("Error al subir la foto. Intenta de nuevo.");
+      });
+  } else {
+    // Sin foto, guardar el producto normalmente
+    saveProductData(null);
+  }
 }
 
 function editProduct(id) {

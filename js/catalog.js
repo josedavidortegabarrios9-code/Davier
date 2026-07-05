@@ -53,10 +53,14 @@ const Catalog = (() => {
   function productCardHTML(p) {
     const final = getFinalPrice(p);
     const hasDisc = p.discount > 0;
+    const photoHTML = p.photo 
+      ? `<img class="product-photo" src="${p.photo}" alt="${p.name}" onerror="this.style.display='none'"/>`
+      : `<svg class="product-icon" aria-label="${p.name}" role="img"><use href="#icon-${p.icon}"/></svg>`;
+    
     return `
       <article class="product-card">
         <div class="product-window">
-          <svg class="product-icon" aria-label="${p.name}" role="img"><use href="#icon-${p.icon}"/></svg>
+          ${photoHTML}
           ${p.isNew  ? '<span class="badge badge-new">Nuevo</span>' : ""}
           ${hasDisc  ? `<span class="badge badge-sale">-${p.discount}%</span>` : ""}
           <button class="btn-wish" aria-label="Guardar ${p.name}" data-id="${p.id}">
