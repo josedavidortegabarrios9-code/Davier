@@ -14,13 +14,10 @@ const firebaseConfig = {
 };
 
 let auth = null;
-let db = null;
 
 try {
   firebase.initializeApp(firebaseConfig);
   auth = firebase.auth ? firebase.auth() : null;
-  db = firebase.firestore();
-  db.settings({ experimentalAutoDetectLongPolling: true });
 } catch (e) {
-  console.warn("Firebase no se pudo inicializar, la tienda sigue funcionando sin la nube.", e);
+  console.warn("Firebase Auth no se pudo inicializar.", e);
 }

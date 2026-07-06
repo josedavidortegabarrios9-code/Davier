@@ -7,32 +7,24 @@
 
 const CloudSync = (() => {
 
-  function withTimeout(promise, ms) {
-    return Promise.race([
-      promise,
-      new Promise(resolve => setTimeout(resolve, ms))
-    ]);
-  }
-
   function syncProducts() {
-    if (!db) return Promise.resolve();
-    return withTimeout(db.collection("davier").doc("products").get(), 6000)
-      .then(doc => {
-        if (doc && doc.exists && Array.isArray(doc.data().list) && doc.data().list.length) {
-          const cloudList = doc.data().list;
+    if (typeof FirestoreREST === "undefined") return Promise.resolve();
+    return FirestoreREST.getDoc("davier/products")
+      .then(data => {
+        if (data && Array.isArray(data.list) && data.list.length) {
           PRODUCTS.length = 0;
-          cloudList.forEach(p => PRODUCTS.push(p));
+          data.list.forEach(p => PRODUCTS.push(p));
         }
       })
       .catch(() => { /* sin conexión o sin datos: se queda con los de ejemplo */ });
   }
 
   function syncBanners() {
-    if (!db) return Promise.resolve();
-    return withTimeout(db.collection("davier").doc("banners").get(), 6000)
-      .then(doc => {
-        if (doc && doc.exists && Array.isArray(doc.data().list) && doc.data().list.length) {
-          applyBanners(doc.data().list);
+    if (typeof FirestoreREST === "undefined") return Promise.resolve();
+    return FirestoreREST.getDoc("davier/banners")
+      .then(data => {
+        if (data && Array.isArray(data.list) && data.list.length) {
+          applyBanners(data.list);
         }
       })
       .catch(() => { /* se queda con los banners de ejemplo */ });

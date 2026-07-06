@@ -18,28 +18,18 @@ const Auth = (() => {
   return { login, logout };
 })();
 
-/* ---- Storage de datos admin (Firestore) ---- */
+/* ---- Storage de datos admin (Firestore vía REST, sin SDK) ---- */
 const AdminData = (() => {
   let cache = { products: null, banners: null };
 
-  function withTimeout(promise, ms) {
-    return Promise.race([
-      promise,
-      new Promise(resolve => setTimeout(resolve, ms))
-    ]);
-  }
-
   function init() {
-    const productsRef = db.collection("davier").doc("products");
-    const bannersRef = db.collection("davier").doc("banners");
-
     return Promise.all([
-      withTimeout(productsRef.get(), 6000).then(doc => {
-        cache.products = (doc && doc.exists && doc.data().list) ? doc.data().list : [...PRODUCTS];
-      }).catch(() => { cache.products = [...PRODUCTS]; }),
-      withTimeout(bannersRef.get(), 6000).then(doc => {
-        cache.banners = (doc && doc.exists && doc.data().list) ? doc.data().list : getDefaultBanners();
-      }).catch(() => { cache.banners = getDefaultBanners(); })
+      FirestoreREST.getDoc("davier/products").then(data => {
+        cache.products = (data && Array.isArray(data.list)) ? data.list : [...PRODUCTS];
+      }).catch(err => { console.warn("No se pudieron cargar productos de la nube:", err.message); cache.products = [...PRODUCTS]; }),
+      FirestoreREST.getDoc("davier/banners").then(data => {
+        cache.banners = (data && Array.isArray(data.list)) ? data.list : getDefaultBanners();
+      }).catch(err => { console.warn("No se pudieron cargar banners de la nube:", err.message); cache.banners = getDefaultBanners(); })
     ]);
   }
 
@@ -49,7 +39,7 @@ const AdminData = (() => {
 
   function saveProducts(arr) {
     cache.products = arr;
-    return db.collection("davier").doc("products").set({ list: arr });
+    return FirestoreREST.setDoc("davier/products", { list: arr });
   }
 
   function getBanners() {
@@ -58,8 +48,7 @@ const AdminData = (() => {
 
   function saveBanners(arr) {
     cache.banners = arr;
-    db.collection("davier").doc("banners").set({ list: arr })
-      .catch(err => alert("No se pudo guardar en la nube: " + err.message));
+    return FirestoreREST.setDoc("davier/banners", { list: arr });
   }
 
   function getDefaultBanners() {
@@ -174,13 +163,13 @@ function initDashboard() {
   const revenueEl = document.getElementById("dash-revenue");
   const ordersCountEl = document.getElementById("dash-orders-count");
 
-  if (typeof db === "undefined" || !db) {
+  if (typeof FirestoreREST === "undefined") {
     if (tbody) tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">Sin conexión a la nube.</td></tr>`;
     return;
   }
 
-  db.collection("orders").orderBy("date", "desc").limit(50).get().then(snap => {
-    const orders = snap.docs.map(d => d.data());
+  FirestoreREST.listCollection("orders").then(docs => {
+    const orders = docs.map(d => d.data).sort((a, b) => new Date(b.date) - new Date(a.date));
     const now = new Date();
     const thisMonth = orders.filter(o => {
       const d = new Date(o.date);
@@ -343,17 +332,31 @@ function saveProduct() {
     const saveBtn = document.getElementById("btn-save-product");
     if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = "Guardando..."; }
 
+    let settled = false;
+    const safetyTimeout = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      alert("❌ Firebase no respondió en 15 segundos.\n\nEsto normalmente pasa por bloqueos de red (wifi/router/antivirus/VPN) que impiden la conexión con Firestore.\n\nIntenta con otra red (datos móviles) para confirmar.");
+      if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = "Guardar producto"; }
+    }, 15000);
+
     AdminData.saveProducts(products)
       .then(() => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(safetyTimeout);
         renderProductsTable(products);
         hideProductForm();
         alert("✓ Producto guardado en la nube correctamente");
       })
       .catch(err => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(safetyTimeout);
         alert("❌ NO se pudo guardar en la nube.\n\nError real de Firebase:\n" + err.code + ": " + err.message);
       })
       .finally(() => {
-        if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = "Guardar producto"; }
+        if (saveBtn && settled) { saveBtn.disabled = false; saveBtn.textContent = "Guardar producto"; }
       });
   };
 
@@ -400,9 +403,12 @@ function deleteProduct(id) {
   if (!confirm("¿Eliminar este producto?")) return;
   let products = AdminData.getProducts();
   products = products.filter(p => p.id != id);
-  AdminData.saveProducts(products);
-  renderProductsTable(products);
-  alert("✓ Producto eliminado");
+  AdminData.saveProducts(products)
+    .then(() => {
+      renderProductsTable(products);
+      alert("✓ Producto eliminado");
+    })
+    .catch(err => alert("❌ No se pudo eliminar en la nube:\n" + err.message));
 }
 
 /* ================================================================
@@ -476,10 +482,13 @@ function saveBanner() {
     banners.push({ id: newId, tag, title, subtitle, btn, icon, badge, theme, active });
   }
 
-  AdminData.saveBanners(banners);
-  renderBannersTable(banners);
-  hideBannerForm();
-  alert("✓ Banner guardado");
+  AdminData.saveBanners(banners)
+    .then(() => {
+      renderBannersTable(banners);
+      hideBannerForm();
+      alert("✓ Banner guardado en la nube correctamente");
+    })
+    .catch(err => alert("❌ No se pudo guardar el banner en la nube:\n" + err.message));
 }
 
 function editBanner(id) {
@@ -506,9 +515,12 @@ function deleteBanner(id) {
   if (!confirm("¿Eliminar este banner?")) return;
   let banners = AdminData.getBanners();
   banners = banners.filter(b => b.id != id);
-  AdminData.saveBanners(banners);
-  renderBannersTable(banners);
-  alert("✓ Banner eliminado");
+  AdminData.saveBanners(banners)
+    .then(() => {
+      renderBannersTable(banners);
+      alert("✓ Banner eliminado");
+    })
+    .catch(err => alert("❌ No se pudo eliminar el banner en la nube:\n" + err.message));
 }
 
 /* ================================================================
@@ -519,57 +531,56 @@ function initOrders() {
   if (!tbody) return;
   tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text-muted)">Cargando pedidos...</td></tr>`;
 
-  if (typeof db === "undefined" || !db) {
+  if (typeof FirestoreREST === "undefined") {
     tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text-muted)">No se pudo conectar con la nube.</td></tr>`;
     return;
   }
 
-  db.collection("orders").orderBy("date", "desc").get()
-    .then(snap => {
-      if (snap.empty) {
+  FirestoreREST.listCollection("orders")
+    .then(docs => {
+      if (!docs.length) {
         tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text-muted)">Todavía no hay pedidos.</td></tr>`;
         return;
       }
+      docs.sort((a, b) => new Date(b.data.date) - new Date(a.data.date));
       const statusOptions = ["Procesando", "En tránsito", "Entregado", "Cancelado"];
-      tbody.innerHTML = snap.docs.map(doc => {
-        const o = doc.data();
+      tbody.innerHTML = docs.map(({ id, data: o }) => {
         const fecha = o.date ? new Date(o.date).toLocaleDateString("es-CO") : "-";
         const cliente = o.customer ? `${o.customer.nombre} ${o.customer.apellido}` : "-";
         const ciudad = o.customer?.ciudad || "-";
-        const statusClass = (o.status || "Procesando").toLowerCase().replace(" ", "-").replace("á","a").replace("í","i");
         return `
           <tr>
-            <td><code>${o.orderNumber || doc.id}</code></td>
+            <td><code>${o.orderNumber || id}</code></td>
             <td>${fecha}</td>
             <td>${cliente}</td>
             <td>${ciudad}</td>
             <td>${formatCOP(o.total || 0)}</td>
             <td>
-              <select class="order-status-select" data-id="${doc.id}">
+              <select class="order-status-select" data-id="${id}">
                 ${statusOptions.map(s => `<option value="${s}" ${o.status === s ? "selected" : ""}>${s}</option>`).join("")}
               </select>
             </td>
-            <td><button class="btn-adm-sm btn-view-order" data-id="${doc.id}">Ver detalles</button></td>
+            <td><button class="btn-adm-sm btn-view-order" data-id="${id}">Ver detalles</button></td>
           </tr>
         `;
       }).join("");
 
       tbody.querySelectorAll(".order-status-select").forEach(sel => {
         sel.addEventListener("change", () => {
-          db.collection("orders").doc(sel.dataset.id).update({ status: sel.value })
+          FirestoreREST.updateField(`orders/${sel.dataset.id}`, "status", sel.value)
             .catch(err => alert("No se pudo actualizar el estado: " + err.message));
         });
       });
 
       tbody.querySelectorAll(".btn-view-order").forEach(btn => {
         btn.addEventListener("click", () => {
-          const doc = snap.docs.find(d => d.id === btn.dataset.id);
-          if (doc) showOrderDetail(doc.data());
+          const found = docs.find(d => d.id === btn.dataset.id);
+          if (found) showOrderDetail(found.data);
         });
       });
     })
     .catch(err => {
-      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text-muted)">Error al cargar pedidos.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text-muted)">Error al cargar pedidos: ${err.message}</td></tr>`;
       console.warn(err);
     });
 }

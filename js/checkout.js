@@ -459,27 +459,17 @@ const Checkout = (() => {
       document.getElementById("checkout-modal")?.scrollTo(0, 0);
     };
 
-    if (typeof db !== "undefined" && db) {
-      const savePromise = db.collection("orders").add(currentOrder);
-
-      // Si Firebase tarda mucho, igual dejamos avanzar al cliente (no lo hacemos esperar eternamente),
-      // pero seguimos esperando la confirmación real por detrás para saber si de verdad se guardó.
-      const uiTimeout = new Promise(resolve => setTimeout(() => resolve("timeout"), 8000));
-
-      Promise.race([savePromise, uiTimeout]).then(result => {
-        if (result === "timeout") {
-          console.warn("El pedido está tardando más de lo normal en guardarse, pero se sigue intentando en segundo plano...");
-        }
-        finish();
-      });
-
-      // Esto corre siempre, sin importar el timeout de arriba, para saber la verdad real:
-      savePromise
-        .then(() => console.log("✓ Pedido guardado en Firestore correctamente:", currentOrder.orderNumber))
+    if (typeof FirestoreREST !== "undefined") {
+      FirestoreREST.addDoc("orders", currentOrder)
+        .then(id => {
+          currentOrder.firestoreId = id;
+          console.log("✓ Pedido guardado en Firestore correctamente:", currentOrder.orderNumber);
+        })
         .catch(err => {
-          console.error("❌ El pedido NO se guardó en la nube. Error real:", err.code, err.message);
+          console.error("❌ El pedido NO se guardó en la nube:", err.message);
           window.__lastOrderError = err;
-        });
+        })
+        .finally(finish);
     } else {
       finish();
     }
