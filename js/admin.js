@@ -49,8 +49,7 @@ const AdminData = (() => {
 
   function saveProducts(arr) {
     cache.products = arr;
-    db.collection("davier").doc("products").set({ list: arr })
-      .catch(err => alert("No se pudo guardar en la nube: " + err.message));
+    return db.collection("davier").doc("products").set({ list: arr });
   }
 
   function getBanners() {
@@ -341,10 +340,21 @@ function saveProduct() {
       products.push(newProduct);
     }
 
-    AdminData.saveProducts(products);
-    renderProductsTable(products);
-    hideProductForm();
-    alert("✓ Producto guardado");
+    const saveBtn = document.getElementById("btn-save-product");
+    if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = "Guardando..."; }
+
+    AdminData.saveProducts(products)
+      .then(() => {
+        renderProductsTable(products);
+        hideProductForm();
+        alert("✓ Producto guardado en la nube correctamente");
+      })
+      .catch(err => {
+        alert("❌ NO se pudo guardar en la nube.\n\nError real de Firebase:\n" + err.code + ": " + err.message);
+      })
+      .finally(() => {
+        if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = "Guardar producto"; }
+      });
   };
 
   // Si hay foto, subirla a Firebase Storage
